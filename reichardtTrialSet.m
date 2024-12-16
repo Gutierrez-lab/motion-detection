@@ -1,0 +1,69 @@
+
+% This will allow you to run any type of subunit with any type of input
+% noise (e.g. correlated or uncorrelated) and get a readout about motion in
+% that stimulus input (in terms of probability). This readout is a vector
+% called probLeft (what's the likelihood that motion was leftward) and is
+% its mean and standard deviation is in the vector called probLeftSummary.
+
+function [leftBool, rightBool, probLL, probLR, probRR, probRL] = ...
+    reichardtTrialSet(params, stimLeftward, stimRightward, ...
+    projDiscAnalysis)
+
+% Generate responses
+respLeftward = generateReichardtResp(params.model, stimLeftward, ...
+    params.subunitType, params.subunitInh, params.subDelay, ...
+    params.sampleIntrv, params.productSubtraction);
+respRightward = generateReichardtResp(params.model, stimRightward, ...
+    params.subunitType, params.subunitInh, params.subDelay, ...
+    params.sampleIntrv, params.productSubtraction);
+
+[leftTemp, ~, leftSamp] = splitTrainTest(respLeftward, ...
+    params.sizeTrain);
+[rightTemp, ~, rightSamp] = splitTrainTest(respRightward, ...
+    params.sizeTrain);
+
+% Trim away the response portions at the beginning and end that are
+% just to noise (e.g. no motion stimuli)
+respTStart = round(params.respTStart / params.sampleIntrv); 
+respTEnd = round(params.respTEnd / params.sampleIntrv);
+leftTemp = leftTemp(1, respTStart:respTEnd);
+rightTemp = rightTemp(1, respTStart:respTEnd);
+leftSamp = leftSamp(:, respTStart:respTEnd);
+rightSamp = rightSamp(:, respTStart:respTEnd);
+
+if projDiscAnalysis
+    [prjL_L, ~] = projWithTemplate(leftTemp,leftSamp);
+    [prjL_R, ~] = projWithTemplate(rightTemp,leftSamp);
+    [prjR_R, ~] = projWithTemplate(rightTemp,rightSamp);
+    [prjR_L, ~] = projWithTemplate(leftTemp,rightSamp);
+    
+    leftBool = (prjL_L > prjL_R);
+    rightBool = (prjR_R > prjR_L);
+    
+    probLL = NaN;
+    probLR = NaN;
+    probRR = NaN;
+    probRL = NaN;
+    
+else
+    discrmntVect = leftTemp - rightTemp;
+    [prjL_D, ~] = projWithTemplate(discrmntVect,leftSamp);
+    [prjR_D, ~] = projWithTemplate(discrmntVect, rightSamp);
+    [leftBool, rightBool, probLL, probLR, probRR, probRL] = ...
+        convertProjToProb(prjL_D, prjR_D);
+    
+end
+
+leftBool = mean(leftBool);
+rightBool = mean(rightBool);
+    
+% Store responses
+% respLeftward = respLeftward';
+% respRightward = respRightward';
+% allOutput = struct;
+% allOutput.stimLR = stimLeftward;
+% allOutput.respLR = respLeftward;
+% allOutput.stimRL = stimRightward;
+% allOutput.respRL = respRightward;
+
+end
