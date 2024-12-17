@@ -1,6 +1,7 @@
 %% Let's get started
 tic
-plotSettings;
+% plotSettings; %we can 
+
 % clearvars;
 % p = true;
 
@@ -29,10 +30,10 @@ params.sampleIntrv = 1E-4;
 % Trial params
 params.respTStart = 0.9;
 params.respTEnd = 1.9;
-params.repeats = 1100;
+params.repeats = 5500; %number of trials per condition
 params.sizeTrain = 100;
 sizeTest = params.repeats - params.sizeTrain;
-params.totalSims = 5; 
+% params.totalSims = 3; %5 set this back when done testing 
 
 projDiscAnalysis = false;
 
@@ -42,7 +43,7 @@ for i = 1:length(allPulseDelay)
     
     params.pulseDelay = allPulseDelay(i);
     
-    for j = 1:params.totalSims %repeats per stim
+    % for j = 1:params.totalSims %repeats per stim
         
         % Generate stimuli
         leftToRight = false;
@@ -59,30 +60,27 @@ for i = 1:length(allPulseDelay)
         % Run stimuli on different circuits
         % rod only
         params.subunitType = 'separateRod';
-        [probTMeansL.rod(j,i), probTMeansR.rod(j,i), ...
+        [probTMeansL.rod(:,i), probTMeansR.rod(:,i), ...
             pRodLL, pRodLR, pRodRR, pRodRL] = ...
-            reichardtTrialSet(params, stimLeftward, stimRightward, ...
-            projDiscAnalysis);
+            reichardtTrialSet(params, stimLeftward, stimRightward);
         
         %cone only
         params.subunitType = 'separateCone';
-        [probTMeansL.cone(j,i), probTMeansR.cone(j,i), ...
+        [probTMeansL.cone(:,i), probTMeansR.cone(:,i), ...
             pConeLL, pConeLR, pConeRR, pConeRL] = ...
-            reichardtTrialSet(params, stimLeftward, stimRightward, ...
-            projDiscAnalysis);
+            reichardtTrialSet(params, stimLeftward, stimRightward);
 
-        % Optimal combination of rod-cone signals
-        optCombLeft = (pRodLL .* pConeLL) > (pRodLR .* pConeLR);
-        optCombRight = (pRodRR .* pConeRR) > (pRodRL .* pConeRL);
-        probTMeansL.optml(j,i) = mean(optCombLeft);
-        probTMeansR.optml(j,i) = mean(optCombRight);
+        % % Optimal combination of rod-cone signals
+        % optCombLeft = (pRodLL .* pConeLL) > (pRodLR .* pConeLR);
+        % optCombRight = (pRodRR .* pConeRR) > (pRodRL .* pConeRL);
+        % probTMeansL.optml(j,i) = mean(optCombLeft);
+        % probTMeansR.optml(j,i) = mean(optCombRight);
         
         % true model
         params.subunitType = 'sharedComb';
-        [probTMeansL.comb(j,i), probTMeansR.comb(j,i)] = ...
-            reichardtTrialSet(params, stimLeftward, stimRightward, ...
-            projDiscAnalysis);
-    end
+        [probTMeansL.comb(:,i), probTMeansR.comb(:,i)] = ...
+            reichardtTrialSet(params, stimLeftward, stimRightward);
+    % end
     
 end
 
@@ -93,7 +91,7 @@ toc
 
 %% Time to plot
 xAxis = allPulseDelay .* 1000;
-xAxisMatrix = repmat(xAxis, params.totalSims, 1);
+% xAxisMatrix = repmat(xAxis, params.totalSims, 1);
 chanceLine = 0.5 .* ones(length(allPulseDelay), 1); 
 
 errorPlot = true;
@@ -106,23 +104,23 @@ lPMuCone = mean(probTMeansL.cone);
 rPMuCone = mean(probTMeansR.cone);
 lPMuComb = mean(probTMeansL.comb);
 rPMuComb = mean(probTMeansR.comb);
-lPMuOptml = mean(probTMeansL.optml);
-rPMuOptml = mean(probTMeansR.optml);
+% lPMuOptml = mean(probTMeansL.optml);
+% rPMuOptml = mean(probTMeansR.optml);
 lPStdRod = std(probTMeansL.rod);
 rPStdRod = std(probTMeansR.rod);
 lPStdCone = std(probTMeansL.cone);
 rPStdCone = std(probTMeansR.cone);
 lPStdComb = std(probTMeansL.comb);
 rPStdComb = std(probTMeansR.comb);
-lPStdOptml = std(probTMeansL.optml);
-rPStdOptml = std(probTMeansR.optml);
+% lPStdOptml = std(probTMeansL.optml);
+% rPStdOptml = std(probTMeansR.optml);
 
 figure;
 subplot(2,1,1);
 errorbar(xAxis - offsetPoints, lPMuRod, lPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
 errorbar(xAxis, lPMuCone, lPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
 errorbar(xAxis + offsetPoints, lPMuComb, lPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
-errorbar(xAxis + 2*offsetPoints, lPMuOptml, lPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
+% errorbar(xAxis + 2*offsetPoints, lPMuOptml, lPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
 plot(xAxis, chanceLine, 'k-');
 title('performance compare, leftward');
 xlabel('stim delay ms');
@@ -140,7 +138,7 @@ subplot(2,1,2);
 errorbar(xAxis - offsetPoints, rPMuRod, rPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
 errorbar(xAxis, rPMuCone, rPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
 errorbar(xAxis + offsetPoints, rPMuComb, rPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
-errorbar(xAxis + 2*offsetPoints, rPMuOptml, rPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
+% errorbar(xAxis + 2*offsetPoints, rPMuOptml, rPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
 plot(xAxis, chanceLine, 'k-');
 title('performance compare, rightward');
 xlabel('stim delay ms');

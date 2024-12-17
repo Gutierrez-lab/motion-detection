@@ -6,8 +6,7 @@
 % its mean and standard deviation is in the vector called probLeftSummary.
 
 function [leftBool, rightBool, probLL, probLR, probRR, probRL] = ...
-    reichardtTrialSet(params, stimLeftward, stimRightward, ...
-    projDiscAnalysis)
+    reichardtTrialSet(params, stimLeftward, stimRightward)
 
 % Generate responses
 respLeftward = generateReichardtResp(params.model, stimLeftward, ...
@@ -31,31 +30,38 @@ rightTemp = rightTemp(1, respTStart:respTEnd);
 leftSamp = leftSamp(:, respTStart:respTEnd);
 rightSamp = rightSamp(:, respTStart:respTEnd);
 
-if projDiscAnalysis
-    [prjL_L, ~] = projWithTemplate(leftTemp,leftSamp);
-    [prjL_R, ~] = projWithTemplate(rightTemp,leftSamp);
-    [prjR_R, ~] = projWithTemplate(rightTemp,rightSamp);
-    [prjR_L, ~] = projWithTemplate(leftTemp,rightSamp);
-    
-    leftBool = (prjL_L > prjL_R);
-    rightBool = (prjR_R > prjR_L);
-    
+% if projDiscAnalysis
+    % [prjL_L, ~] = projWithTemplate(leftTemp,leftSamp);
+    % [prjL_R, ~] = projWithTemplate(rightTemp,leftSamp);
+    % [prjR_R, ~] = projWithTemplate(rightTemp,rightSamp);
+    % [prjR_L, ~] = projWithTemplate(leftTemp,rightSamp);
+    % 
+    % leftBool = (prjL_L > prjL_R);
+    % rightBool = (prjR_R > prjR_L);
+    % 
     probLL = NaN;
     probLR = NaN;
     probRR = NaN;
     probRL = NaN;
     
-else
-    discrmntVect = leftTemp - rightTemp;
+% else
+    discrmntVect = rightTemp - leftTemp;
     [prjL_D, ~] = projWithTemplate(discrmntVect,leftSamp);
     [prjR_D, ~] = projWithTemplate(discrmntVect, rightSamp);
-    [leftBool, rightBool, probLL, probLR, probRR, probRL] = ...
-        convertProjToProb(prjL_D, prjR_D);
-    
-end
+    autoscored_L = (prjL_D < 0);
+    autoscored_R = (prjR_D > 0);
 
-leftBool = mean(leftBool);
-rightBool = mean(rightBool);
+    accuracy_R = sum(autoscored_R)/length(autoscored_R); % proportion of accurately autoscored R trials
+    accuracy_L = sum(autoscored_L)/length(autoscored_L); % proportion of accurately autoscored L trials
+
+
+   % [leftBool, rightBool, probLL, probLR, probRR, probRL] = ...
+   %      convertProjToProb(prjL_D, prjR_D);
+    
+% end
+
+leftBool = autoscored_L; %mean(leftBool);
+rightBool = autoscored_R; %mean(rightBool);
     
 % Store responses
 % respLeftward = respLeftward';
