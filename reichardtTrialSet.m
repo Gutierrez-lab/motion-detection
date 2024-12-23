@@ -23,6 +23,7 @@ respRightward = generateReichardtResp(params.model, stimRightward, ...
 
 % Trim away the response portions at the beginning and end that are
 % just to noise (e.g. no motion stimuli)
+% Might want to just shorten the stimuli
 respTStart = round(params.respTStart / params.sampleIntrv); 
 respTEnd = round(params.respTEnd / params.sampleIntrv);
 leftTemp = leftTemp(1, respTStart:respTEnd);

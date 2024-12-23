@@ -20,7 +20,7 @@ params.pulseContrast = 1;
 % Stimulus params
 params.pulseDur = 0.01; 
 
-params.fullInputDur = 2;
+params.fullInputDur = 2;%why wasn't this just shortened?
 params.noiseAmountNorm = 0.1; %0.1;
 params.corrlNoise = false;
 params.blueMean = 10;
@@ -59,10 +59,17 @@ for i = 1:length(allPulseDelay)
         
         % Run stimuli on different circuits
         % rod only
+        % This is where the noise should be added in.
         params.subunitType = 'separateRod';
         [probTMeansL.rod(:,i), probTMeansR.rod(:,i), ...
             pRodLL, pRodLR, pRodRR, pRodRL] = ...
             reichardtTrialSet(params, stimLeftward, stimRightward);
+
+        % Call same function as above, but with no noise (and only 2 
+        % trials).
+
+        % Function that deals with discriminant + projections (inputs to 
+        % this should be the noisy trials and the 2 noiseless trials).
         
         %cone only
         params.subunitType = 'separateCone';
