@@ -21,10 +21,8 @@ respRightward = generateReichardtResp(params.model, stimRightward, ...
 % Trim away the response portions at the beginning and end that are
 % just to noise (e.g. no motion stimuli)
 % Might want to just shorten the stimuli
-respTStart = params.respTStart / params.sampleIntrv; 
-respTEnd = params.respTEnd / params.sampleIntrv;
-% Start the indexing at respTStart+1 and not respTStart because of 
-% MATLAB's 1-based indexing
+respTStart = round(params.respTStart / params.sampleIntrv); 
+respTEnd = round(params.respTEnd / params.sampleIntrv);
 trimmedLeft = respLeftward(:, respTStart:respTEnd);
 trimmedRight = respRightward(:, respTStart:respTEnd);
 
@@ -39,7 +37,9 @@ trimmedRight = respRightward(:, respTStart:respTEnd);
 
     
 % else
-    [prjL_D, ~] = projWithTemplate(discrmntVect, trimmedLeft);
+    discrmntVect = repmat(discrmntVect, )
+    
+    [prjL_D, ~] = projWithTemplate(discrmntVect,trimmedLeft);
     [prjR_D, ~] = projWithTemplate(discrmntVect, trimmedRight);
 
     autoscored_L = (prjL_D < 0);

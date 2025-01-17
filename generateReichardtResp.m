@@ -42,8 +42,16 @@ thresh = true;
 respL = combineExcAndInhTraces(respL, inhL, excScalar, thresh);
 respR = combineExcAndInhTraces(respR, inhR, excScalar, thresh);
 
-% Set the delay trace
+% Put the delays into the delayed traces, but add a padding of zeros
+% to make sure that both delayed and non-delayed traces are the same length
+% such that they can be multiplied with each other element by element
 lengthDT = round(subDelay ./ sampleIntrv);
+% n = size(respL,1);
+% subDelayPad = zeros(n,lengthDT);
+% respLDT = [subDelayPad respL];
+% respRDT = [subDelayPad respR];
+% respL = [respL subDelayPad];
+% respR = [respR subDelayPad];
 respLDT = circshift(respL, lengthDT, 2);
 respRDT = circshift(respR, lengthDT, 2);
 
@@ -59,5 +67,8 @@ if productSubtraction
 else
     reichardtOut = product1;
 end
+
+% reichardtOut(:, end-n:end) = [];
+% reichardtOut(:, 1:n) = [];
 
 end

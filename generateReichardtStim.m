@@ -1,6 +1,6 @@
 function rodConeReichardtStim = generateReichardtStim(pulseDur, ...
     pulseDelay,  pulseContrast, leftToRight, noiseAmountNorm, ...
-    fullInputDur, sampleIntrv, redMean, blueMean, repeats, corrlNoise)
+    fullInputDur, sampleIntrv, redMean, blueMean, repeats)
 
 % Calculate some vector lengths, from inputs given in seconds
 pulseLength = round(pulseDur / sampleIntrv);
@@ -11,6 +11,7 @@ totalStimLength = round(fullInputDur / sampleIntrv);
 % Find out how much you need to pad the motion stimuli temporally
 % to get it to the specified total stimulus length (do this for both the
 % left and right subunits)
+
 bufferLength1 = (totalStimLength - pulseLength) / 2;
 if (mod(bufferLength1, 2) == 0)
     bufferLength2 = bufferLength1;
@@ -20,6 +21,11 @@ else
 end
 delayedBufferLength1 = bufferLength1 + delayLength;
 delayedBufferLength2 = bufferLength2 - delayLength;
+
+% bufferLength1 = 0;
+% bufferLength2 = totalStimLength - pulseLength;
+% delayedBufferLength1 = delayLength;
+% delayedBufferLength2 = totalStimLength - pulseAndDelayLength;
 
 % Generate pulse traces for red and blue
 s1.blue = setMotionTrace(bufferLength1, bufferLength2, ...
@@ -44,10 +50,10 @@ if noiseAmountNorm ~= 0
     blueNoiseTrace1 = blueMean .* noiseTrace1;
     blueNoiseTrace2 = blueMean .* noiseTrace2;
     
-    if corrlNoise
-        redNoiseTrace1 = redMean .* noiseTrace1;
-        redNoiseTrace2 = redMean .* noiseTrace2;
-    else
+    % if corrlNoise
+    %     redNoiseTrace1 = redMean .* noiseTrace1;
+    %     redNoiseTrace2 = redMean .* noiseTrace2;
+    % else
         % Generate another set of noise so that rod and cone is different
         noiseTraceAlt1 = generateNoiseTrace(sampleIntrv, 20, 4, repeats, ...
             fullInputDur, 0, noiseAmountNorm);
@@ -57,7 +63,7 @@ if noiseAmountNorm ~= 0
         redNoiseTrace1 = redMean .* noiseTraceAlt1;
         redNoiseTrace2 = redMean .* noiseTraceAlt2;
         
-    end
+    % end
     
     % The noise model is additive (i.e. not signal dependent)?
     s1.blue = s1.blue + blueNoiseTrace1;

@@ -1,0 +1,156 @@
+%% Let's get started
+tic
+% plotSettings;
+clearvars;
+% p = true;
+
+% Circuit params
+params.subDelay = 0.05;
+params.productSubtraction = true;
+params.subunitInh = false;
+params.model = load('fullModelMAT');
+params.model.excNLFuncH = params.model.excWithInfo.params.nlEvaluator;
+params.model.inhNLFuncH = params.model.inhWithInfo.params.nlEvaluator;
+
+% Stim params that I want to loop over
+allPulseDelay = 0.02:0.01:0.2;%[0:0.005:0.025 0.05:0.025:0.25]; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15];
+params.pulseContrast = 1; 
+
+% Stimulus params
+params.pulseDur = 0.01; 
+
+params.fullInputDur = 2;
+params.noiseAmountNorm = 0.1;
+params.blueMean = 10;
+params.redMean = 200;
+params.sampleIntrv = 1E-4;
+
+% Trial params
+params.respTStart = 0.9;
+params.respTEnd = 1.9;
+params.repeats = 1100;
+params.sizeTrain = 100;
+sizeTest = params.repeats - params.sizeTrain;
+
+projDiscAnalysis = false;
+
+%%
+
+for i = 1:length(allPulseDelay)
+    
+    params.pulseDelay = allPulseDelay(i);
+
+        % Generate noiseless stimuli
+        zeroNoise = 0;
+        oneRepeat = 1;
+        stimLeftwardNoiseless = generateReichardtStim(params.pulseDur, ...
+            params.pulseDelay,  params.pulseContrast, leftToRight, ...
+            zeroNoise, params.fullInputDur, params.sampleIntrv, ...
+            params.redMean, params.blueMean, oneRepeat);
+        leftToRight = true;
+        stimRightwardNoiseless = generateReichardtStim(params.pulseDur, ...
+            params.pulseDelay,  params.pulseContrast, leftToRight, ...
+            zeroNoise, params.fullInputDur, params.sampleIntrv, ...
+            params.redMean, params.blueMean, oneRepeat);
+        discriminantVect = generateReichardtResp(params.model, params.stim, ...
+            params.subunitType, params.subunitInh, params.subDelay, ...
+            params.sampleIntrv, params.productSubtraction);
+
+
+        % Generate stimuli
+        leftToRight = false;
+        stimLeftward = generateReichardtStim(params.pulseDur, ...
+            params.pulseDelay,  params.pulseContrast, leftToRight, ...
+            params.noiseAmountNorm, params.fullInputDur, params.sampleIntrv, ...
+            params.redMean, params.blueMean, params.repeats);
+        leftToRight = true;
+        stimRightward = generateReichardtStim(params.pulseDur, ...
+            params.pulseDelay,  params.pulseContrast, leftToRight, ...
+            params.noiseAmountNorm, params.fullInputDur, params.sampleIntrv, ...
+            params.redMean, params.blueMean, params.repeats);
+        
+        % Run stimuli on different circuits
+        params.subunitType = 'separateRod';
+        [autoscoredL.rod(i), autoscoredR.rod(i), ...
+            rodAccuracyL, rodAccuracyR] = ...
+            reichardtTrialSet(params, stimLeftward, stimRightward);
+        
+        params.subunitType = 'separateCone';
+        [autoscoredL.cone(i), autoscoredR.cone(i), ...
+            coneAccuracyL, coneAccuracyR] = ...
+            reichardtTrialSet(params, stimLeftward, stimRightward);
+
+        % Optimal combination of rod-cone signals
+        % optCombLeft = (pRodLL .* pConeLL) > (pRodLR .* pConeLR);
+        % optCombRight = (pRodRR .* pConeRR) > (pRodRL .* pConeRL);
+        % probTMeansL.optml(i) = mean(optCombLeft);
+        % probTMeansR.optml(i) = mean(optCombRight);
+        
+        params.subunitType = 'sharedComb';
+        [autoscoredL.comb(i), autoscoredR.comb(i)] = ...
+            reichardtTrialSet(params, stimLeftward, stimRightward);
+end
+    
+
+params.pulseDelay = allPulseDelay;
+% params.pulseContrast = pulseContrast;
+
+toc
+
+%% Time to plot
+xAxis = allPulseDelay .* 1000;
+xAxisMatrix = repmat(xAxis, params.totalSims, 1);
+chanceLine = 0.5 .* ones(length(allPulseDelay), 1); 
+
+errorPlot = true;
+offsetPoints = 0.2;
+purpleColor = [0.660156250000000,0.457031250000000,0.816406250000000];
+
+lPMuRod = mean(probTMeansL.rod);
+rPMuRod = mean(probTMeansR.rod);
+lPMuCone = mean(probTMeansL.cone);
+rPMuCone = mean(probTMeansR.cone);
+lPMuComb = mean(probTMeansL.comb);
+rPMuComb = mean(probTMeansR.comb);
+% lPMuOptml = mean(probTMeansL.optml);
+% rPMuOptml = mean(probTMeansR.optml);
+lPStdRod = std(probTMeansL.rod);
+rPStdRod = std(probTMeansR.rod);
+lPStdCone = std(probTMeansL.cone);
+rPStdCone = std(probTMeansR.cone);
+lPStdComb = std(probTMeansL.comb);
+rPStdComb = std(probTMeansR.comb);
+% lPStdOptml = std(probTMeansL.optml);
+% rPStdOptml = std(probTMeansR.optml);
+
+figure;
+subplot(2,1,1);
+errorbar(xAxis - offsetPoints, lPMuRod, lPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+errorbar(xAxis, lPMuCone, lPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+errorbar(xAxis + offsetPoints, lPMuComb, lPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+errorbar(xAxis + 2*offsetPoints, lPMuOptml, lPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
+plot(xAxis, chanceLine, 'k-');
+title('performance compare, leftward');
+xlabel('stim delay ms');
+ylabel('labeled left');
+ylim([0 1]);
+xlim([-8 (max(allPulseDelay)*1000)+8]);
+if params.corrlNoise
+    combLegend = 'corr rod+cone';
+else
+    combLegend = 'uncorr rod+cone';
+end
+legend('rod', 'cone', combLegend, 'optml', 'chance line', 'Location', 'Southeast');
+legend('rod', 'cone', combLegend, 'optml', 'chance line', 'Location', 'Southeast');
+
+subplot(2,1,2);
+errorbar(xAxis - offsetPoints, rPMuRod, rPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+errorbar(xAxis, rPMuCone, rPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+errorbar(xAxis + offsetPoints, rPMuComb, rPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+errorbar(xAxis + 2*offsetPoints, rPMuOptml, rPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
+plot(xAxis, chanceLine, 'k-');
+title('performance compare, rightward');
+xlabel('stim delay ms');
+ylabel('labeled right');
+ylim([0 1]);
+xlim([-8 (max(allPulseDelay)*1000)+8]);
