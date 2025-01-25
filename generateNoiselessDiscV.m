@@ -1,4 +1,5 @@
-function discriminantVect = generateNoiselessDiscV(params)
+function [discriminantVect, trimmedLeftNoiseless, trimmedRightNoiseless] ...
+    = generateNoiselessDiscV(params)
 
 % Set noise level to zero and only run one trial
 zeroNoise = 0;

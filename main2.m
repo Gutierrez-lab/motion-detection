@@ -13,7 +13,7 @@ params.model.excNLFuncH = params.model.excWithInfo.params.nlEvaluator;
 params.model.inhNLFuncH = params.model.inhWithInfo.params.nlEvaluator;
 
 % Stim params that I want to loop over
-allPulseDelay = 0.005:0.005:0.04; %[0:0.005:0.025 0.05:0.025:0.25]; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15];
+allPulseDelay = 0.025:0.025:0.25; %[0:0.005:0.025 0.05:0.025:0.25]; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15];
 params.pulseContrast = 1;
 
 % Stimulus params
@@ -23,7 +23,7 @@ params.fullInputDur = 2;
 params.noiseAmountNorm = 0.1;
 params.blueMean = 10;
 params.redMean = 200;
-params.sampleIntrv = 1E-4;
+params.sampleIntrv = 1E-4; 
 
 % Trial params
 params.respTStart = 0.9;
@@ -69,7 +69,9 @@ for i = 1:length(allPulseDelay)
         params.subunitType = 'separateRod';
 
         % Generate discriminant vector with noiseless stim
-        discriminantVect.rod(i,:) = generateNoiselessDiscV(params);
+        [discriminantVect.rod(i,:), ...
+            responsesLeft.rod(i,:), responsesRight.rod(i,:)] = ...
+            generateNoiselessDiscV(params);
 
         % % Run noisy stimuli for the rest of the trials
         [autoscoredL.rod(i,:), autoscoredR.rod(i,:), ...
@@ -81,7 +83,9 @@ for i = 1:length(allPulseDelay)
         params.subunitType = 'separateCone';
 
         % Generate discriminant vectors with noiseless stim
-        discriminantVect.cone(i,:) = generateNoiselessDiscV(params);
+        [discriminantVect.cone(i,:), ...
+            responsesLeft.cone(i,:), responsesRight.cone(i,:)] = ...
+            generateNoiselessDiscV(params);
 
         % Run noisy trials
         [autoscoredL.cone(i,:), autoscoredR.cone(i,:), ...
@@ -98,7 +102,9 @@ for i = 1:length(allPulseDelay)
         % % Run rod-cone combined circuit
         params.subunitType = 'sharedComb';
         % % Generate discriminant vectors with noiseless stim
-        discriminantVect.comb(i,:) = generateNoiselessDiscV(params);
+        [discriminantVect.comb(i,:), ...
+            responsesLeft.comb(i,:), responsesRight.comb(i,:)] = ...
+            generateNoiselessDiscV(params);
 
         [autoscoredL.comb(i,:), autoscoredR.comb(i,:), ...
             combAccuracyL(i), combAccuracyR(i)] = ...
@@ -125,6 +131,57 @@ legend('combined leftward', 'cone leftward', ...
 hold on; ylim([0 1])
 ylabel('accuracy'); xlabel('pulse delay (s)'); 
 title('performance with noiseless discriminant (1000 trials per delay)')
+
+%% Plot noiseless HR responses
+xlim1 = 0;%100;
+xlim2 = 1000; %350;
+
+% load('oliveVioletColourmap.mat');
+% set(groot,'defaultAxesColorOrder',flip(oliveVioletColourmap));
+plotSettings;
+
+figure; 
+subplot(2,3,1); 
+plot((1:length(responsesLeft.rod))/10, responsesLeft.rod(7:end,:)'); 
+%legend(["10 ms", "20 ms", "30 ms", "40 ms", "50 ms", "60 ms", ...
+%    "70 ms", "80 ms", "90 ms", "100 ms"]); 
+% legend(["20 ms", "40 ms", "60 ms", "80 ms", "100 ms", "120 ms", ...
+%    "140 ms", "160 ms", "180 ms", "200 ms"]); 
+legend(["140 ms", "160 ms", "180 ms", "200 ms"]); 
+title("rod leftward"); 
+xlim([xlim1 xlim2]);
+
+hold on; 
+subplot(2,3,2); 
+plot((1:length(responsesLeft.cone))/10, responsesLeft.cone(7:end,:)');  
+title("cone leftward");
+xlim([xlim1 xlim2]);
+
+hold on; 
+subplot(2,3,3); 
+plot((1:length(responsesLeft.comb))/10, responsesLeft.comb(7:end,:)');  
+title("combined leftward");
+xlim([xlim1 xlim2]);
+
+hold on; 
+subplot(2,3,4); 
+plot((1:length(responsesRight.rod))/10, responsesRight.rod(7:end,:)');  
+title("rod rightward");
+xlim([xlim1 xlim2]);
+
+hold on; 
+subplot(2,3,5); 
+plot((1:length(responsesRight.cone))/10, responsesRight.cone(7:end,:)');  
+title("cone rightward");
+xlim([xlim1 xlim2]);
+
+hold on; 
+subplot(2,3,6); 
+plot((1:length(responsesRight.comb))/10, responsesRight.comb(7:end,:)');  
+title("combined rightward");
+xlim([xlim1 xlim2]);
+
+%%
 
 % xAxis = allPulseDelay .* 1000;
 % xAxisMatrix = repmat(xAxis, params.totalSims, 1);

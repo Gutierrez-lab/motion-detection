@@ -26,7 +26,7 @@ function output = combineExcAndInhTraces(iExc, iInh, excScalar, thresh)
 %      output = -output / 60;
 
     if thresh
-        output(output < 0) = 0;
+       output(output < 0) = 0;    % output(output < 1) = 1; %to test a specific case... 
     end
     
 end
