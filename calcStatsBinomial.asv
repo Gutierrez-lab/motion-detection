@@ -1,0 +1,17 @@
+% Calculate estimated mean and variance for column vectors in a dataset
+% binaryDataMatrix, collected from a binomial distribution.
+
+function [mu_hat, sigma_hat] = calcStatsBinomial(binaryDataMatrix)
+
+n = size(binaryDataMatrix, 1);
+
+% mu_hat = n * p_hat, and since p_hat = sum(binaryDataMatrix) ./ n, then
+% the ns divide themselves out, and we're left with the equation below
+mu_hat = sum(binaryDataMatrix);
+
+sigma_hat = sqrt()
+p_hat = sum(binaryDataMatrix) ./ n;
+mu_hat = n .* p_hat;
+
+
+end

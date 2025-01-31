@@ -5,7 +5,7 @@
 % called probLeft (what's the likelihood that motion was leftward) and is
 % its mean and standard deviation is in the vector called probLeftSummary.
 
-function trialReadout = ...
+function [leftBool, rightBool] = ...
     reichardtTrialSet(params, stimLeftward, stimRightward)
 
 % Generate responses
@@ -40,12 +40,11 @@ rightSamp = rightSamp(:, respTStart:respTEnd);
 % the integrated response.
 % To quickly estimate the integral, we'll use the Trapezoid Rule (ie.,
 % averaging the left and right Riemann sums)
-leftIntegral = trapNumIntegral(leftSamp, params.sampleIntrv);
-rightIntegral = trapNumIntegral(rightSamp, params.sampleIntrv);
 
-leftBool = (leftIntegral < 0);
-rightBool = (rightIntegral > 0);
 
-trialReadout = [leftBool rightBool];
+leftBool = leftSamp; 
+rightBool = rightSamp; 
+
     
+
 end
