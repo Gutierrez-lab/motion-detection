@@ -109,64 +109,42 @@ for i = 1:length(allPulseDelay)
 
 end
 
+
 params.pulseDelay = allPulseDelay;
 
 toc
 
+%% Calculating trial stats
+
+readoutRod = [probTMeansL.rod probTMeansR.rod];
+readoutCone = [probTMeansL.cone probTMeansR.cone];
+readoutComb = [probTMeansL.comb probTMeansR.comb];
+
+[rodMu, rodSigma] = calcStatsBinomial(readoutRod);
+[coneMu, coneSigma] = calcStatsBinomial(readoutCone);
+[combMu, combSigma] = calcStatsBinomial(readoutComb);
+
 
 %% Time to plot
-% xAxis = allPulseDelay .* 1000;
-% % xAxisMatrix = repmat(xAxis, params.totalSims, 1);
-% chanceLine = 0.5 .* ones(length(allPulseDelay), 1); 
-% 
-% errorPlot = true;
-% offsetPoints = 0.2;
-% purpleColor = [0.660156250000000,0.457031250000000,0.816406250000000];
-% 
-% lPMuRod = mean(probTMeansL.rod);
-% rPMuRod = mean(probTMeansR.rod);
-% lPMuCone = mean(probTMeansL.cone);
-% rPMuCone = mean(probTMeansR.cone);
-% lPMuComb = mean(probTMeansL.comb);
-% rPMuComb = mean(probTMeansR.comb);
-% % lPMuOptml = mean(probTMeansL.optml);
-% % rPMuOptml = mean(probTMeansR.optml);
-% lPStdRod = std(probTMeansL.rod);
-% rPStdRod = std(probTMeansR.rod);
-% lPStdCone = std(probTMeansL.cone);
-% rPStdCone = std(probTMeansR.cone);
-% lPStdComb = std(probTMeansL.comb);
-% rPStdComb = std(probTMeansR.comb);
-% % lPStdOptml = std(probTMeansL.optml);
-% % rPStdOptml = std(probTMeansR.optml);
-% 
-% figure;
-% subplot(2,1,1);
-% errorbar(xAxis - offsetPoints, lPMuRod, lPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
-% errorbar(xAxis, lPMuCone, lPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
-% errorbar(xAxis + offsetPoints, lPMuComb, lPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
-% % errorbar(xAxis + 2*offsetPoints, lPMuOptml, lPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
-% plot(xAxis, chanceLine, 'k-');
-% title('performance compare, leftward');
-% xlabel('stim delay ms');
-% ylabel('labeled left');
-% ylim([0 1]);
-% xlim([-8 (max(allPulseDelay)*1000)+8]);
-% if params.corrlNoise
-%     combLegend = 'corr rod+cone';
-% else
-%     combLegend = 'uncorr rod+cone';
-% end
-% legend('rod', 'cone', combLegend, 'optml', 'chance line', 'Location', 'Southeast');
-% 
-% subplot(2,1,2);
-% errorbar(xAxis - offsetPoints, rPMuRod, rPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
-% errorbar(xAxis, rPMuCone, rPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
-% errorbar(xAxis + offsetPoints, rPMuComb, rPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
-% % errorbar(xAxis + 2*offsetPoints, rPMuOptml, rPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
-% plot(xAxis, chanceLine, 'k-');
-% title('performance compare, rightward');
-% xlabel('stim delay ms');
-% ylabel('labeled right');
-% ylim([0 1]);
-% xlim([-8 (max(allPulseDelay)*1000)+8]);
+chanceLine = params.repeats .* ones(length(allPulseDelay), 1); 
+
+figure;
+errorbar(xAxis - offsetPoints, rodMu, rodSigma, 'ko', ...
+    'MarkerFaceColor', 'b');
+hold on;
+errorbar(xAxis, coneMu, coneSigma, 'ko', ...
+    'MarkerFaceColor', 'r'); 
+hold on;
+errorbar(xAxis + offsetPoints, combMu, combSigma, 'ko', ...
+    'MarkerFaceColor', customPurpleColour); hold on;
+hold on;
+plot(xAxis, chanceLine, 'k-');
+
+ylim(params.repeats * [1/2 2]);
+
+title(['accurately labeled trials (out of ' num2str(params.repeats * 2)...
+    ' total trials)']);
+
+xlabel('pulse delay (ms)');
+ylabel('labeled correctly');
+legend('rod', 'cone', 'comb', 'chance line', 'Location', 'Southeast');

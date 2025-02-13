@@ -51,6 +51,7 @@ rightSamp = respRightward(:, respTStart+1:respTEnd);
 
 leftBool = autoscored_L; %mean(leftBool);
 rightBool = autoscored_R; %mean(rightBool);
+
     
 % Store responses
 % respLeftward = respLeftward';
