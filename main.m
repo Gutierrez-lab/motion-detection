@@ -26,7 +26,6 @@ params.numPulses = 1000;
 params.pulseDur = 0.01; 
 
 params.fullInputDur = 2;
-params.noiseAmountNorm = 0.1;
 params.corrlNoise = false;
 params.blueMean = 10;
 params.redMean = 200;
@@ -35,12 +34,13 @@ params.sampleIntrv = 1E-4;
 % Trial params
 params.respTStart = 0.9;
 params.respTEnd = 1.9;
-params.repeats = 1000; %number of trials per condition
+params.repeats = 1000; %number of trials per direction
 
 projDiscAnalysis = false;
 
 %% generate variable velocity stimuli
 
+params.noiseAmountNorm = 0;
 leftToRight = false;
 [stimDiscLeftward, discLeftDelays] = ...
     variableVelocityStim(params.pulseDelayRange,  ...
@@ -72,6 +72,7 @@ params.subunitType = 'sharedComb';
 
 %% runs all experiment combos
 
+params.noiseAmountNorm = 0.1;
 for i = 1:length(allPulseDelay)
 
     params.pulseDelay = allPulseDelay(i);
@@ -93,19 +94,19 @@ for i = 1:length(allPulseDelay)
     params.subunitType = 'separateRod';
     [probTMeansL.rod(:,i), probTMeansR.rod(:,i)] = ...
         reichardtTrialSet(params, stimLeftward, stimRightward, ...
-        discrmntVect);
+        discrmntVectRod);
 
     %cone only
     params.subunitType = 'separateCone';
     [probTMeansL.cone(:,i), probTMeansR.cone(:,i)] = ...
         reichardtTrialSet(params, stimLeftward, stimRightward, ...
-        discrmntVect);
+        discrmntVectCone);
 
     % true model
     params.subunitType = 'sharedComb';
     [probTMeansL.comb(:,i), probTMeansR.comb(:,i)] = ...
         reichardtTrialSet(params, stimLeftward, stimRightward, ...
-        discrmntVect);
+        discrmntVectComb);
 
 end
 
@@ -116,9 +117,9 @@ toc
 
 %% Calculating trial stats
 
-readoutRod = [probTMeansL.rod probTMeansR.rod];
-readoutCone = [probTMeansL.cone probTMeansR.cone];
-readoutComb = [probTMeansL.comb probTMeansR.comb];
+readoutRod = [probTMeansL.rod; probTMeansR.rod];
+readoutCone = [probTMeansL.cone; probTMeansR.cone];
+readoutComb = [probTMeansL.comb; probTMeansR.comb];
 
 [rodMu, rodSigma] = calcStatsBinomial(readoutRod);
 [coneMu, coneSigma] = calcStatsBinomial(readoutCone);
@@ -126,6 +127,13 @@ readoutComb = [probTMeansL.comb probTMeansR.comb];
 
 
 %% Time to plot
+offsetPoints = 0.5;
+
+% convert pulse delays from seconds to milliseconds
+xAxis = allPulseDelay .* 1000;
+
+customPurpleColour = [0.66,0.46,0.82]; 
+
 chanceLine = params.repeats .* ones(length(allPulseDelay), 1); 
 
 figure;
