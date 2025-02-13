@@ -1,0 +1,129 @@
+function [rodConeReichardtStim, allDelays] = ...
+    variableVelocityStim(delayBounds,  ...
+    numDelays,  pulseContrast, pulseDur, leftToRight, noiseAmountNorm, ...
+    fullInputDur, sampleIntrv, redMean, blueMean, delayLength)
+
+
+delayBounds = [0 0.1];
+numDelays = 100;
+fullInputDur = 2;
+
+rng(0,'twister');
+minDelay = delayBounds(1);
+maxDelay = delayBounds(2);
+allDelays = (maxDelay-minDelay).*rand(numDelays,1) + minDelay;
+
+allDelaysRounded = round(allDelays ./ sampleIntrv);
+
+totalStimLength = round(fullInputDur / sampleIntrv);
+pulseLength = round(pulseDur / sampleIntrv);
+pulseTrace = pulseContrast .* ones(1, pulseLength);
+
+bufferLength1 = (totalStimLength - pulseLength) / 2;
+if (mod(bufferLength1, 2) == 0)
+    bufferLength2 = bufferLength1;
+else
+    bufferLength1 = floor(bufferLength1);
+    bufferLength2 = bufferLength1;
+end
+
+
+s1Stim = zeros(numDelays, fullInputDur);
+s2Stim = zeros(numDelays, fullInputDur);
+
+
+for i = 1:numDelays
+    delayLength = allDelaysRounded(i);
+    delayedBufferLength1 = bufferLength1 + delayLength;
+    delayedBufferLength2 = bufferLength2 - delayLength;
+    
+    buffer1 = zeros(1, bufferLength1);
+    buffer2 = zeros(1, bufferLength2);
+    s1Stim(i,:) = [buffer1 pulseTrace buffer2];
+
+    dbuffer1 = zeros(1, delayedBufferLength1);
+    dbuffer2 = zeros(1, delayedBufferLength2);
+    
+    s2Stim(i,:) = [dbuffer1 pulseTrace dbuffer2];
+   
+end
+
+
+%% s1Stim = (s1Stim .* meanIntensity) + meanIntensity;
+
+
+    
+% Calculate some vector lengths, from inputs given in seconds
+pulseLength = round(pulseDur / sampleIntrv);
+delayLength = round(pulseDelay / sampleIntrv);
+% pulseAndDelayLength = pulseLength + delayLength;
+totalStimLength = round(fullInputDur / sampleIntrv);
+
+% Find out how much you need to pad the motion stimuli temporally
+% to get it to the specified total stimulus length (do this for both the
+% left and right subunits)
+bufferLength1 = (totalStimLength - pulseLength) / 2;
+if (mod(bufferLength1, 2) == 0)
+    bufferLength2 = bufferLength1;
+else
+    bufferLength1 = floor(bufferLength1);
+    bufferLength2 = bufferLength1;
+end
+delayedBufferLength1 = bufferLength1 + delayLength;
+delayedBufferLength2 = bufferLength2 - delayLength;
+
+% Generate pulse traces for red and blue
+s1.blue = setMotionTrace(bufferLength1, bufferLength2, ...
+    pulseLength, pulseContrast, repeats, blueMean);
+s2.blue = setMotionTrace(delayedBufferLength1, delayedBufferLength2, ...
+    pulseLength, pulseContrast, repeats, blueMean);
+
+s1.red = setMotionTrace(bufferLength1, bufferLength2, ...
+    pulseLength, pulseContrast, repeats, redMean);
+s2.red = setMotionTrace(delayedBufferLength1, delayedBufferLength2, ...
+    pulseLength, pulseContrast, repeats, redMean);
+
+% Add the type of noise set by the parameters
+if noiseAmountNorm ~= 0
+    
+    % Generate a noise trace for the two different pulse stimuli
+    noiseTrace1 = generateNoiseTrace(sampleIntrv, 20, 4, repeats, ...
+        fullInputDur, 0, noiseAmountNorm);
+    noiseTrace2 = generateNoiseTrace(sampleIntrv, 20, 4, repeats, ...
+        fullInputDur, 0, noiseAmountNorm);
+    
+    blueNoiseTrace1 = blueMean .* noiseTrace1;
+    blueNoiseTrace2 = blueMean .* noiseTrace2;
+    
+    % Generate another set of noise so that rod and cone is different
+    noiseTraceAlt1 = generateNoiseTrace(sampleIntrv, 20, 4, repeats, ...
+        fullInputDur, 0, noiseAmountNorm);
+    noiseTraceAlt2 = generateNoiseTrace(sampleIntrv, 20, 4, repeats, ...
+        fullInputDur, 0, noiseAmountNorm);
+
+    redNoiseTrace1 = redMean .* noiseTraceAlt1;
+    redNoiseTrace2 = redMean .* noiseTraceAlt2;
+        
+    
+    % The noise model is additive (i.e. not signal dependent)?
+    s1.blue = s1.blue + blueNoiseTrace1;
+    s1.red = s1.red + redNoiseTrace1;
+    
+    s2.blue = s2.blue + blueNoiseTrace2;
+    s2.red = s2.red + redNoiseTrace2;
+        
+end
+
+% Designate the direction of motion
+if leftToRight
+    leftStim = s1;
+    rightStim = s2;
+else
+    leftStim = s2;
+    rightStim = s1;
+end
+
+rodConeReichardtStim.leftStim = leftStim;
+rodConeReichardtStim.rightStim = rightStim;
+
+end
