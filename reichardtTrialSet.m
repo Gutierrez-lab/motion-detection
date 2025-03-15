@@ -6,7 +6,7 @@
 % its mean and standard deviation is in the vector called probLeftSummary.
 
 function [leftBool, rightBool] = ...
-    reichardtTrialSet(params, stimLeftward, stimRightward, discrmntVect)
+    reichardtTrialSet(params, stimLeftward, stimRightward)
 
 % Generate responses
 respLeftward = generateReichardtResp(params.model, stimLeftward, ...
@@ -16,14 +16,21 @@ respRightward = generateReichardtResp(params.model, stimRightward, ...
     params.subunitType, params.subunitInh, params.subDelay, ...
     params.sampleIntrv, params.productSubtraction);
 
+% Split into vectors into training and sample matrices
+[leftTemp, ~, leftSamp] = splitTrainTest(respLeftward, params.sizeTrain);
+[rightTemp, ~, rightSamp] = splitTrainTest(respRightward, params.sizeTrain);
 
 % Trim away the response portions at the beginning and end that are
 % just to noise (e.g. no motion stimuli)
 % Might want to just shorten the stimuli
+
 respTStart = round(params.respTStart / params.sampleIntrv); 
 respTEnd = round(params.respTEnd / params.sampleIntrv);
-leftSamp = respLeftward(:, respTStart+1:respTEnd);
-rightSamp = respRightward(:, respTStart+1:respTEnd);
+
+leftSamp = leftSamp(:, respTStart+1:respTEnd);
+rightSamp = rightSamp(:, respTStart+1:respTEnd);
+leftTemp = leftTemp(:, respTStart+1:respTEnd);
+rightTemp = rightTemp(:, respTStart+1:respTEnd);
 
 % if projDiscAnalysis
     % [prjL_L, ~] = projWithTemplate(leftTemp,leftSamp);
@@ -36,7 +43,7 @@ rightSamp = respRightward(:, respTStart+1:respTEnd);
 
     
 % else
-    % discrmntVect = rightTemp - leftTemp;
+    discrmntVect = rightTemp - leftTemp;
     
     [prjL_D, ~] = projWithTemplate(discrmntVect,leftSamp);
     [prjR_D, ~] = projWithTemplate(discrmntVect, rightSamp);
