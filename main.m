@@ -1,8 +1,8 @@
 %% Let's get started
 % tic
- plotSettings; %we can 
+% plotSettings; %we can 
 
-clearvars;
+% clearvars;
 % p = true;
 
 % Circuit params
@@ -15,10 +15,10 @@ params.model.inhNLFuncH = params.model.inhWithInfo.params.nlEvaluator;
 
 % Stim params that I want to loop over
 allPulseDelay = 0:0.01:0.1; %0:0.005:0.1; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15];
-params.pulseContrast = 1; 
+% params.pulseContrast = 1; 
 
 % Stimulus params
-params.pulseDur = 0.01; 
+% params.pulseDur = 0.01; 
 
 params.fullInputDur = 2;
 params.corrlNoise = false;
@@ -88,34 +88,34 @@ readoutComb = [probTMeansL.comb; probTMeansR.comb];
 [combMu, combSigma] = calcStatsBinomial(readoutComb);
 
 
-%% Time to plot
-offsetPoints = 0.5;
-
-% convert pulse delays from seconds to milliseconds
-xAxis = allPulseDelay .* 1000;
-
-customPurpleColour = [0.66,0.46,0.82]; 
-
-testTrials = (params.repeats-params.sizeTrain) * 2;
-chanceLine = testTrials / 2 .* ones(length(allPulseDelay), 1); 
-
-figure;
-errorbar(xAxis - offsetPoints, rodMu, rodSigma, 'ko', ...
-    'MarkerFaceColor', 'b');
-hold on;
-errorbar(xAxis, coneMu, coneSigma, 'ko', ...
-    'MarkerFaceColor', 'r'); 
-hold on;
-errorbar(xAxis + offsetPoints, combMu, combSigma, 'ko', ...
-    'MarkerFaceColor', customPurpleColour); hold on;
-hold on;
-plot(xAxis, chanceLine, 'k-');
-
-ylim(testTrials * [1/4 1]);
-
-title(['accurately labeled trials (out of ' num2str(testTrials) ...
-    ' total trials)']);
-
-xlabel('pulse delay (ms)');
-ylabel('labeled correctly');
-legend('rod', 'cone', 'comb', 'chance line', 'Location', 'Southeast');
+% %% Time to plot
+% offsetPoints = 0.5;
+% 
+% % convert pulse delays from seconds to milliseconds
+% xAxis = allPulseDelay .* 1000;
+% 
+% customPurpleColour = [0.66,0.46,0.82]; 
+% 
+% testTrials = (params.repeats-params.sizeTrain) * 2;
+% chanceLine = testTrials / 2 .* ones(length(allPulseDelay), 1); 
+% 
+% figure;
+% errorbar(xAxis - offsetPoints, rodMu, rodSigma, 'ko', ...
+%     'MarkerFaceColor', 'b');
+% hold on;
+% errorbar(xAxis, coneMu, coneSigma, 'ko', ...
+%     'MarkerFaceColor', 'r'); 
+% hold on;
+% errorbar(xAxis + offsetPoints, combMu, combSigma, 'ko', ...
+%     'MarkerFaceColor', customPurpleColour); hold on;
+% hold on;
+% plot(xAxis, chanceLine, 'k-');
+% 
+% ylim(testTrials * [1/4 1]);
+% 
+% title(['accurately labeled trials (out of ' num2str(testTrials) ...
+%     ' total trials)']);
+% 
+% xlabel('pulse delay (ms)');
+% ylabel('labeled correctly');
+% legend('rod', 'cone', 'comb', 'chance line', 'Location', 'Southeast');
