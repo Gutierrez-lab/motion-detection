@@ -3,9 +3,9 @@ set(0, 'DefaultAxesFontSize', 16)
 set(0, 'DefaultLineLineWidth', 2);
 
 % Wtf is groot here, I don't know. But these lines set the interpreter
-set(groot,'defaulttextinterpreter','latex'); 
-set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
-set(groot, 'defaultLegendInterpreter','latex');
+% set(groot,'defaulttextinterpreter','latex'); 
+% set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+% set(groot, 'defaultLegendInterpreter','latex');
 
 co = [169 117 209; 20 136 153; 250 117 125; 69 130 68; 36 186 89] ./ 256;
 
