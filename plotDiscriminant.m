@@ -2,10 +2,10 @@
 load('singleRun25Ms.mat');
 
 
-x = (1:size(resp,2))' - 1;
+x = (1:size(respLeftward,2))' - 1;
 x = x ./ 10;
-meanLeftward = mean(respLeftward,1)';
-meanRightward = mean(respRightward,1)';
+meanLeftward = mean(respLeftward(1:100, :),1)';
+meanRightward = mean(respRightward(1:100, :),1)';
 discriminantV = meanRightward - meanLeftward;
 
 figure;

@@ -2,7 +2,7 @@ clearvars;
 plotSettings;
 
 figure;
-
+params.subDelay = 0.05;
 pulseDur = [0.02 0.01 0.005];
 pulseContrast = [0.5 1 1.5];
 
