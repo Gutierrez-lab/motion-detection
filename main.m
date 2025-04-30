@@ -1,6 +1,6 @@
 %% Let's get started
 % tic
-% plotSettings; %we can 
+plotSettings;
 
 % clearvars;
 % p = true;
@@ -79,16 +79,30 @@ toc
 
 %% Calculating trial stats
 
-readoutRod = [probTMeansL.rod; probTMeansR.rod];
-readoutCone = [probTMeansL.cone; probTMeansR.cone];
-readoutComb = [probTMeansL.comb; probTMeansR.comb];
+% readoutRod = [probTMeansL.rod; probTMeansR.rod];
+% readoutCone = [probTMeansL.cone; probTMeansR.cone];
+% readoutComb = [probTMeansL.comb; probTMeansR.comb];
+% 
+% [rodMu, rodSigma] = calcStatsBinomial(readoutRod);
+% [coneMu, coneSigma] = calcStatsBinomial(readoutCone);
+% [combMu, combSigma] = calcStatsBinomial(readoutComb);
 
-[rodMu, rodSigma] = calcStatsBinomial(readoutRod);
-[coneMu, coneSigma] = calcStatsBinomial(readoutCone);
-[combMu, combSigma] = calcStatsBinomial(readoutComb);
+n = (params.repeats-params.sizeTrain) * 2;
+rodSuccess = sum(probTMeansL.rod) + sum(probTMeansR.rod);
+coneSuccess = sum(probTMeansL.cone) + sum(probTMeansR.cone);
+combSuccess = sum(probTMeansL.comb) + sum(probTMeansR.comb);
+
+[pHatRod,pciRod] = binofit(rodSuccess,n);
+[pHatCone,pciCone] = binofit(coneSuccess,n);
+[pHatComb,pciComb] = binofit(combSuccess,n);
+
 
 
 %% Time to plot
+errorLengthRod = pciRod - [pHatRod' pHatRod'];
+errorLengthCone = pciCone - [pHatCone' pHatCone'];
+errorLengthComb = pciComb - [pHatComb' pHatComb'];
+
 offsetPoints = 0.5;
 
 % convert pulse delays from seconds to milliseconds
@@ -96,26 +110,53 @@ xAxis = allPulseDelay .* 1000;
 
 customPurpleColour = [0.66,0.46,0.82];
 
-testTrials = (params.repeats-params.sizeTrain) * 2;
-chanceLine = testTrials / 2 .* ones(length(allPulseDelay), 1);
+chanceLine = 0.5 .* ones(1,length(xAxis));
 
 figure;
-errorbar(xAxis - offsetPoints, rodMu, rodSigma, 'ko', ...
-    'MarkerFaceColor', 'b');
+errorbar(xAxis - offsetPoints, pHatRod, errorLengthRod(:,1), ...
+    errorLengthRod(:,2), 'ko', 'MarkerFaceColor', 'b');
 hold on;
-errorbar(xAxis, coneMu, coneSigma, 'ko', ...
-    'MarkerFaceColor', 'r');
+errorbar(xAxis, pHatCone, errorLengthCone(:,1), errorLengthCone(:,2),...
+    'ko', 'MarkerFaceColor', 'r');
 hold on;
-errorbar(xAxis + offsetPoints, combMu, combSigma, 'ko', ...
-    'MarkerFaceColor', customPurpleColour); hold on;
+errorbar(xAxis + offsetPoints, pHatComb, errorLengthComb(:,1), ...
+    errorLengthComb(:,2), 'ko',  'MarkerFaceColor', customPurpleColour); 
 hold on;
 plot(xAxis, chanceLine, 'k-');
 
-ylim(testTrials * [1/4 1]);
-
-title(['accurately labeled trials (out of ' num2str(testTrials) ...
-    ' total trials)']);
+title(['discrimination accuracy (n=' num2str(n) ')']);
 
 xlabel('pulse delay (ms)');
-ylabel('labeled correctly');
-legend('rod', 'cone', 'comb', 'chance line', 'Location', 'Southeast');
+ylabel('p');
+legend('rod', 'cone', 'comb', 'chance', 'Location', 'Southeast');
+
+%% Agresti-Coull
+
+n = (params.repeats-params.sizeTrain) * 2;
+
+[pHatRod2,pciRod2] = agrestiCoull(rodSuccess,n);
+[pHatCone2,pciCone2] = agrestiCoull(coneSuccess,n);
+[pHatComb2,pciComb2] = agrestiCoull(combSuccess,n);
+
+errorLengthRod2 = pciRod2 - [pHatRod2' pHatRod2'];
+errorLengthCone2 = pciCone2 - [pHatCone2' pHatCone2'];
+errorLengthComb2 = pciComb2 - [pHatComb2' pHatComb2'];
+
+
+figure;
+errorbar(xAxis - offsetPoints, pHatRod2, errorLengthRod2(:,1), ...
+    errorLengthRod(:,2), 'ko', 'MarkerFaceColor', 'b');
+hold on;
+errorbar(xAxis, pHatCone2, errorLengthCone2(:,1), errorLengthCone2(:,2),...
+    'ko', 'MarkerFaceColor', 'r');
+hold on;
+errorbar(xAxis + offsetPoints, pHatComb2, errorLengthComb2(:,1), ...
+    errorLengthComb2(:,2), 'ko',  'MarkerFaceColor', customPurpleColour); 
+hold on;
+plot(xAxis, chanceLine, 'k-');
+
+title(['discrimination accuracy (n=' num2str(n) ') AC']);
+
+xlabel('pulse delay (ms)');
+ylabel('p');
+legend('rod', 'cone', 'comb', 'chance', 'Location', 'Southeast');

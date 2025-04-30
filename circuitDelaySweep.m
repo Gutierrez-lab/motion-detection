@@ -5,7 +5,7 @@ figure;
 
 params.pulseDur = 0.01; 
 params.pulseContrast = 1; 
-subDelay = [0.025 0.05 0.1];
+subDelay = [0.25 0.5 0.75 1];
 
 tic
 position = 1;
