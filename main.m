@@ -79,14 +79,6 @@ toc
 
 %% Calculating trial stats
 
-% readoutRod = [probTMeansL.rod; probTMeansR.rod];
-% readoutCone = [probTMeansL.cone; probTMeansR.cone];
-% readoutComb = [probTMeansL.comb; probTMeansR.comb];
-% 
-% [rodMu, rodSigma] = calcStatsBinomial(readoutRod);
-% [coneMu, coneSigma] = calcStatsBinomial(readoutCone);
-% [combMu, combSigma] = calcStatsBinomial(readoutComb);
-
 n = (params.repeats-params.sizeTrain) * 2;
 rodSuccess = sum(probTMeansL.rod) + sum(probTMeansR.rod);
 coneSuccess = sum(probTMeansL.cone) + sum(probTMeansR.cone);
@@ -128,35 +120,5 @@ title(['discrimination accuracy (n=' num2str(n) ')']);
 
 xlabel('pulse delay (ms)');
 ylabel('p');
-legend('rod', 'cone', 'comb', 'chance', 'Location', 'Southeast');
+legend('rod', 'cone', 'rod+cone', 'chance', 'Location', 'Southeast');
 
-%% Agresti-Coull
-
-n = (params.repeats-params.sizeTrain) * 2;
-
-[pHatRod2,pciRod2] = agrestiCoull(rodSuccess,n);
-[pHatCone2,pciCone2] = agrestiCoull(coneSuccess,n);
-[pHatComb2,pciComb2] = agrestiCoull(combSuccess,n);
-
-errorLengthRod2 = pciRod2 - [pHatRod2' pHatRod2'];
-errorLengthCone2 = pciCone2 - [pHatCone2' pHatCone2'];
-errorLengthComb2 = pciComb2 - [pHatComb2' pHatComb2'];
-
-
-figure;
-errorbar(xAxis - offsetPoints, pHatRod2, errorLengthRod2(:,1), ...
-    errorLengthRod(:,2), 'ko', 'MarkerFaceColor', 'b');
-hold on;
-errorbar(xAxis, pHatCone2, errorLengthCone2(:,1), errorLengthCone2(:,2),...
-    'ko', 'MarkerFaceColor', 'r');
-hold on;
-errorbar(xAxis + offsetPoints, pHatComb2, errorLengthComb2(:,1), ...
-    errorLengthComb2(:,2), 'ko',  'MarkerFaceColor', customPurpleColour); 
-hold on;
-plot(xAxis, chanceLine, 'k-');
-
-title(['discrimination accuracy (n=' num2str(n) ') AC']);
-
-xlabel('pulse delay (ms)');
-ylabel('p');
-legend('rod', 'cone', 'comb', 'chance', 'Location', 'Southeast');
