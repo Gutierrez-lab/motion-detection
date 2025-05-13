@@ -1,14 +1,9 @@
 % Circuit params
-% params.subDelay = 0.05;
 params.productSubtraction = true;
 params.subunitInh = false;
 params.model = load('fullModelMAT'); %loads model data
 params.model.excNLFuncH = params.model.excWithInfo.params.nlEvaluator;
 params.model.inhNLFuncH = params.model.inhWithInfo.params.nlEvaluator;
-
-% Stim params that I want to loop over
-allPulseDelay = 0:0.01:0.05; %0:0.005:0.1; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15];
-% params.pulseContrast = 1; 
 
 % Stimulus params
 params.pulseDur = 0.01; 
@@ -77,6 +72,16 @@ n = (params.repeats-params.sizeTrain) * 2;
 rodSuccess = sum(probTMeansL.rod) + sum(probTMeansR.rod);
 coneSuccess = sum(probTMeansL.cone) + sum(probTMeansR.cone);
 combSuccess = sum(probTMeansL.comb) + sum(probTMeansR.comb);
+
+coneBinary = [probTMeansL.cone; probTMeansR.cone];
+rodBinary = [probTMeansL.rod; probTMeansR.rod];
+combBinary = [probTMeansL.comb; probTMeansR.comb];
+aov = zeros(length(allPulseDelay),1);
+
+for idx = 1:length(allPulseDelay)
+    x = [coneBinary(:,idx) rodBinary(:,idx) combBinary(:,idx)];
+    aov(idx) = kruskalwallis(x, [], 'off');
+end
 
 [pHatRod,pciRod] = binofit(rodSuccess,n);
 [pHatCone,pciCone] = binofit(coneSuccess,n);

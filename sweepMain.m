@@ -5,7 +5,10 @@ figure;
 params.subDelay = 0.05;
 pulseDur = [0.02 0.01 0.005];
 pulseContrast = [0.5 1 1.5];
+allPulseDelay = 0:0.01:0.05;
 
+aovAll = ...
+    zeros(length(allPulseDelay), length(pulseContrast) * length(pulseDur));
 tic
 position = 1;
 for i = 1:length(pulseContrast)
@@ -15,6 +18,8 @@ for i = 1:length(pulseContrast)
         params.pulseContrast = pulseContrast(j);
 
         parameterRun;
+
+        aovAll(:,position) = aov;
 
         errorLengthRod = pciRod - [pHatRod' pHatRod'];
         errorLengthCone = pciCone - [pHatCone' pHatCone'];

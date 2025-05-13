@@ -77,7 +77,18 @@ params.pulseDelay = allPulseDelay;
 
 toc
 
-%% Calculating trial stats
+%% Calculating significance
+coneBinary = [probTMeansL.cone; probTMeansR.cone];
+rodBinary = [probTMeansL.rod; probTMeansR.rod];
+combBinary = [probTMeansL.comb; probTMeansR.comb];
+aov = zeros(length(allPulseDelay),1);
+
+for i = 1:length(allPulseDelay)
+    x = [coneBinary(:,i) rodBinary(:,i) combBinary(:,i)];
+    aov(i) = kruskalwallis(x, [], 'off');
+end
+
+%% Calculating trial CI
 
 n = (params.repeats-params.sizeTrain) * 2;
 rodSuccess = sum(probTMeansL.rod) + sum(probTMeansR.rod);
@@ -87,7 +98,6 @@ combSuccess = sum(probTMeansL.comb) + sum(probTMeansR.comb);
 [pHatRod,pciRod] = binofit(rodSuccess,n);
 [pHatCone,pciCone] = binofit(coneSuccess,n);
 [pHatComb,pciComb] = binofit(combSuccess,n);
-
 
 
 %% Time to plot
