@@ -14,3 +14,6 @@ co = [169 117 209; 20 136 153; 250 117 125; 69 130 68; 36 186 89] ./ 256;
 %     191 237 195] ./ 256 .* 0.95; 
 
 set(groot,'defaultAxesColorOrder',co)
+
+box off
+main

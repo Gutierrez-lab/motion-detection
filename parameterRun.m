@@ -79,7 +79,7 @@ combBinary = [probTMeansL.comb; probTMeansR.comb];
 aov = zeros(length(allPulseDelay),1);
 
 for idx = 1:length(allPulseDelay)
-    x = [coneBinary(:,idx) rodBinary(:,idx) combBinary(:,idx)];
+    x = [coneBinary(:,idx) combBinary(:,idx)];
     aov(idx) = kruskalwallis(x, [], 'off');
 end
 

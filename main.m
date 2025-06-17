@@ -3,7 +3,7 @@
 plotSettings;
 
 % clearvars;
-% p = true;
+% p = true;r
 
 % Circuit params
 params.subDelay = 0.05;
@@ -79,12 +79,11 @@ toc
 
 %% Calculating significance
 coneBinary = [probTMeansL.cone; probTMeansR.cone];
-rodBinary = [probTMeansL.rod; probTMeansR.rod];
 combBinary = [probTMeansL.comb; probTMeansR.comb];
 aov = zeros(length(allPulseDelay),1);
 
 for i = 1:length(allPulseDelay)
-    x = [coneBinary(:,i) rodBinary(:,i) combBinary(:,i)];
+    x = [coneBinary(:,i) combBinary(:,i)];
     aov(i) = kruskalwallis(x, [], 'off');
 end
 
