@@ -1,12 +1,12 @@
 %% Let's get started
 % tic
-% plotSettings;
+plotSettings;
 
 % clearvars;
 % p = true;r
 
 % Circuit params
-params.subDelay = 0.05;
+params.subDelay = 0.075;
 params.productSubtraction = true;
 params.subunitInh = false;
 params.model = load('fullModelMAT'); %loads model data
