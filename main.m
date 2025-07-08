@@ -1,6 +1,6 @@
 %% Let's get started
 % tic
-plotSettings;
+% plotSettings;
 
 % clearvars;
 % p = true;r
