@@ -1,6 +1,6 @@
 clearvars;
 
-dt = [50 25];
+dt = [25 50 75];
 totalLength = 1000;
 pulseWidth = 0:5:100;
 stimDelay = 0:5:100;
@@ -32,12 +32,12 @@ for d = 1:length(dt)
     % yVal = repmat(stimDelay', 1, length(pulseWidth));
 
     figure(102); 
-    subplot(length(dt), 1, d);
+    subplot(1, length(dt), d);
     heatmap(stimDelay, flip(pulseWidth), flip(overlap,1));
     colorbar('off')
     ylabel('pulse width (ms)');
     xlabel('stim delay (ms)')
-    title(['HR delay = ', num2str(dt(d)), ' ms']);
+    % title(['HR delay = ', num2str(dt(d)), ' ms']);
 end
 
 
