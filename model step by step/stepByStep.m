@@ -92,6 +92,11 @@ title('full reichardt output, rightward');
 % Press continue. Then, to see trial means, discriminant vector, and
 % the performance of left vs right...
 
+% Note: Lines 27-28 in reichardtTrialSet.m trim the stimuli so we’re 
+% only looking at the 1 second window in which the motion occurs. For 
+% this reason, the outputs from the previous steps and this next step
+% will not have the same lengths.
+
 figure(9); subplot(3,1,1); plot(leftTemp); hold on; plot(rightTemp); 
 title('training means, 100 trials each'); 
 legend('leftward stim', 'rightward stim'); 
