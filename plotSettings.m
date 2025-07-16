@@ -1,5 +1,5 @@
 set(0, 'DefaultAxesFontName','Helvetica');
-set(0, 'DefaultAxesFontSize', 16);
+set(0, 'DefaultAxesFontSize', 20);
 set(0, 'DefaultLineLineWidth', 2);
 
 % Wtf is groot here, I don't know. But these lines set the interpreter
@@ -14,5 +14,3 @@ co = [169 117 209; 20 136 153; 250 117 125; 69 130 68; 36 186 89] ./ 256;
 %     191 237 195] ./ 256 .* 0.95; 
 
 set(groot,'defaultAxesColorOrder',co);
-
-box off;

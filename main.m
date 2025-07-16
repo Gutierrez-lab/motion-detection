@@ -3,10 +3,10 @@
 plotSettings;
 
 % clearvars;
-% p = true;r
+% p = true;
 
 % Circuit params
-params.subDelay = 0.075;
+params.subDelay = 0.05;
 params.productSubtraction = true;
 params.subunitInh = false;
 params.model = load('fullModelMAT'); %loads model data
@@ -14,7 +14,7 @@ params.model.excNLFuncH = params.model.excWithInfo.params.nlEvaluator;
 params.model.inhNLFuncH = params.model.inhWithInfo.params.nlEvaluator;
 
 % Stim params that I want to loop over
-allPulseDelay = 0:0.01:0.1; %0:0.005:0.1; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15];
+allPulseDelay = 0:0.01:0.1;
 params.pulseContrast = 1; 
 
 % Stimulus params

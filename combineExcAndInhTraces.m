@@ -17,7 +17,8 @@ function output = combineExcAndInhTraces(iExc, iInh, excScalar, thresh)
     dForceExc = vRevInh - vRevExc;
     dForceInh = vRevExc - vRevInh;
     
-    gExc = iExc ./ dForceExc;
+    % this is the line that flips the sign of the generator signal
+    gExc = iExc ./ dForceExc; 
     gInh = iInh ./ dForceInh;
     
     output = (excScalar .* gExc) - gInh;
