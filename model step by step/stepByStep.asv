@@ -1,0 +1,96 @@
+%% Step by step guide to see what model does
+
+% This allows you to take apart the model's outputs at each computational
+% stage, such that we can know "what's going on."
+
+
+%% STEP 1, add breakpoint at main.m, line 69
+
+close all;
+
+% First, make sure to set allPulseDelay and HR delay to what you want
+main; 
+
+% Keep pressing "STEP IN" until you get to runRodConeModel.m.
+
+%% STEP 2: add breakpoint to runRodConeModel.m, line 59
+
+% Press "CONTINUE" to get the left correlator (rod-cone ln model) output
+
+% stim
+figure(1); subplot(2,1,1); plot(stims.combinedRod(1,:), 'b'); 
+title('rod only left stimuli'); subplot(2,1,2); 
+plot(stims.combinedCone(1,:), 'r'); title('cone only left stimuli');
+
+% generator signal
+figure(2); 
+subplot(3,1,1); plot(gsRod(1,:), 'b'); title('rod only gs left'); 
+subplot(3,1,2); plot(gsCone(1,:), 'r'); title('cone only gs left'); 
+subplot(3,1,3); plot(genSig(1,:)); title('combined generator signal');
+
+% nonlinear output
+figure(3); subplot(2,1,1); plot(genSig(1,:)); 
+title('generator signal combined'); subplot(2,1,2); 
+plot(output(1,:)); title('nonlinear output');
+
+%% STEP 3: "STEP IN" until you've run the right correlator 
+
+% stim
+figure(4); subplot(2,1,1); plot(stims.combinedRod(1,:), 'b'); 
+title('rod only right stimuli'); subplot(2,1,2); 
+plot(stims.combinedCone(1,:), 'r'); title('cone only right stimuli');
+
+% generator signal
+figure(5); 
+subplot(3,1,1); plot(gsRod(1,:), 'b'); title('rod only gs right'); 
+subplot(3,1,2); plot(gsCone(1,:), 'r'); title('cone only gs right'); 
+subplot(3,1,3); plot(genSig(1,:)); title('combined generator signal');
+
+% nonlinear output
+figure(6); subplot(2,1,1); plot(genSig(1,:)); 
+title('generator signal combined'); subplot(2,1,2); 
+plot(output(1,:)); title('nonlinear output');
+
+%% NOTE: YOU CAN REPEAT STEPS 2 AND 3 TO SEE RIGHTWARD MOTION OUTPUT
+
+%% TO CHECK THE HASSENSTEIN-REICHARDT OUTPUT %%
+%% STEP 4: Add Breakpoint at generateReichardt.m line 63
+
+% Get the full output of the leftward moving stimuli
+figure(7); 
+subplot(2,2,1); plot(respL(1,:)); hold on; plot(respR(1,:)); 
+legend('left correlator', 'right correlator'); 
+subplot(2,2,2); plot(respLDT(1,:)); hold on; plot(respRDT(1,:)); 
+legend('left delayed', 'right delayed'); 
+subplot(2,2,3); plot(product1(1,:)); hold on; plot(product2(1,:)); 
+legend('leftDT * right', 'left * rightDT'); 
+subplot(2,2,4); plot(reichardtOut(1,:)); 
+legend('full reichardt output, leftward');
+
+
+%% Hit "STEP" as desired until you've run through the rightward stimuli
+
+
+figure(8); 
+subplot(2,2,1); plot(respL(1,:)); hold on; plot(respR(1,:)); 
+legend('left correlator', 'right correlator'); 
+subplot(2,2,2); plot(respLDT(1,:)); hold on; plot(respRDT(1,:)); 
+legend('left delayed', 'right delayed'); 
+subplot(2,2,3); plot(product1(1,:)); hold on; plot(product2(1,:)); 
+legend('leftDT * right', 'left * rightDT'); 
+subplot(2,2,4); plot(reichardtOut(1,:)); 
+legend('full reichardt output, rightward');
+
+%% TO CHECK THE AUTOMATIC LABELING STAGE %%
+%% Put breakpoint on reichardtTrialSet.m, line 48
+
+figure(9); subplot(3,1,1); plot(leftTemp); hold on; plot(rightTemp); 
+title('training means, 100 trials each'); 
+legend('leftward stim', 'rightward stim'); 
+subplot(3,1,2); plot(discrmntVect); 
+legend('discriminant vector'); 
+subplot(3,1,3); 
+plot([sum(autoscored_L), sum(autoscored_R)], 'o'); 
+legend('1: left, 2: right');
+title('accurately labeled trials out of 500');
+xlim([0.5 2.5]);
