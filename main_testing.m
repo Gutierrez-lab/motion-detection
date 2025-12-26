@@ -1,0 +1,196 @@
+%% Let's get started
+tic
+% plotSettings; %we can 
+
+% clearvars;
+% p = true;
+
+% Circuit params
+params.subDelay = 0.05;
+params.productSubtraction = true;
+params.subunitInh = false;
+params.model = load('fullModelMAT'); %loads model data
+params.model.excNLFuncH = params.model.excWithInfo.params.nlEvaluator;
+params.model.inhNLFuncH = params.model.inhWithInfo.params.nlEvaluator;
+
+shiftedCone = load('shiftedConeFilter.mat'); % cone filter shifted to align with rod peak
+params.model.exc.filters.shiftedCone = shiftedCone.shiftedCone;
+
+% Stim params that I want to loop over
+allPulseDelay = 0.01:0.01:0.1;%0:0.005:0.05; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15];
+params.pulseContrast = 1; 
+
+% Stimulus params
+params.pulseDur = 0.01; 
+
+params.fullInputDur = 2;%why wasn't this just shortened?
+params.noiseAmountNorm = 0.1; %0.1;
+params.corrlNoise = false;
+params.blueMean = 10;
+params.redMean = 200;
+params.sampleIntrv = 1E-4;
+
+% Trial params
+params.respTStart = 0.9;
+params.respTEnd = 1.9;
+params.repeats = 1000; %5500; %number of trials per condition
+params.sizeTrain = 100;
+sizeTest = params.repeats - params.sizeTrain;
+% params.totalSims = 3; %5 set this back when done testing 
+
+projDiscAnalysis = false;
+
+%% runs all experiment combos
+
+for i = 1:length(allPulseDelay)
+    
+    params.pulseDelay = allPulseDelay(i);
+    
+    % for j = 1:params.totalSims %repeats per stim
+        
+        % Generate stimuli
+        leftToRight = false;
+        stimLeftward = generateReichardtStim(params.pulseDur, ...
+            params.pulseDelay,  params.pulseContrast, leftToRight, ...
+            params.noiseAmountNorm, params.fullInputDur, params.sampleIntrv, ...
+            params.redMean, params.blueMean, params.repeats, params.corrlNoise);
+        leftToRight = true;
+        stimRightward = generateReichardtStim(params.pulseDur, ...
+            params.pulseDelay,  params.pulseContrast, leftToRight, ...
+            params.noiseAmountNorm, params.fullInputDur, params.sampleIntrv, ...
+            params.redMean, params.blueMean, params.repeats, params.corrlNoise);
+        
+        % Run stimuli on different circuits
+        % rod only
+        % This is where the noise should be added in.
+        params.subunitType = 'separateRod';
+        [probTMeansL.rod(:,i), probTMeansR.rod(:,i), ...
+            pRodLL, pRodLR, pRodRR, pRodRL] = ...
+            reichardtTrialSet(params, stimLeftward, stimRightward);
+
+        % Call same function as above, but with no noise (and only 2 
+        % trials).
+
+        % Function that deals with discriminant + projections (inputs to 
+        % this should be the noisy trials and the 2 noiseless trials).
+        
+        %cone only
+        params.subunitType = 'separateCone';
+        [probTMeansL.cone(:,i), probTMeansR.cone(:,i), ...
+            pConeLL, pConeLR, pConeRR, pConeRL] = ...
+            reichardtTrialSet(params, stimLeftward, stimRightward);
+
+        % % Optimal combination of rod-cone signals
+        % optCombLeft = (pRodLL .* pConeLL) > (pRodLR .* pConeLR);
+        % optCombRight = (pRodRR .* pConeRR) > (pRodRL .* pConeRL);
+        % probTMeansL.optml(j,i) = mean(optCombLeft);
+        % probTMeansR.optml(j,i) = mean(optCombRight);
+        
+        % true model
+        params.subunitType = 'sharedComb';
+        [probTMeansL.comb(:,i), probTMeansR.comb(:,i)] = ...
+            reichardtTrialSet(params, stimLeftward, stimRightward);
+
+        % cone + shifted cone
+        params.subunitType = 'coneShiftCone';
+        [probTMeansL.coneShiftCone(:,i), probTMeansR.coneShiftCone(:,i)] = ...
+            reichardtTrialSet(params, stimLeftward, stimRightward);
+
+    % end
+    
+end
+
+params.pulseDelay = allPulseDelay;
+% params.pulseContrast = pulseContrast;
+
+toc
+
+%% Time to plot
+xAxis = allPulseDelay .* 1000;
+% xAxisMatrix = repmat(xAxis, params.totalSims, 1);
+chanceLine = 0.5 .* ones(length(allPulseDelay), 1); 
+
+errorPlot = true;
+offsetPoints = 0.2;
+purpleColor = [0.660156250000000,0.457031250000000,0.816406250000000];
+
+lPMuRod = mean(probTMeansL.rod);
+rPMuRod = mean(probTMeansR.rod);
+lPMuCone = mean(probTMeansL.cone);
+rPMuCone = mean(probTMeansR.cone);
+lPMuComb = mean(probTMeansL.comb);
+rPMuComb = mean(probTMeansR.comb);
+% lPMuOptml = mean(probTMeansL.optml);
+% rPMuOptml = mean(probTMeansR.optml);
+lPStdRod = std(probTMeansL.rod);
+rPStdRod = std(probTMeansR.rod);
+lPStdCone = std(probTMeansL.cone);
+rPStdCone = std(probTMeansR.cone);
+lPStdComb = std(probTMeansL.comb);
+rPStdComb = std(probTMeansR.comb);
+% lPStdOptml = std(probTMeansL.optml);
+% rPStdOptml = std(probTMeansR.optml);
+
+figure;
+subplot(2,1,1);
+errorbar(xAxis - offsetPoints, lPMuRod, lPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+errorbar(xAxis, lPMuCone, lPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+errorbar(xAxis + offsetPoints, lPMuComb, lPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+errorbar(xAxis + 2*offsetPoints, mean(probTMeansL.coneShiftCone), std(probTMeansL.coneShiftCone),'ko','MarkerFaceColor','y');
+% errorbar(xAxis + 2*offsetPoints, lPMuOptml, lPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
+plot(xAxis, chanceLine, 'k-');
+title('performance compare, leftward');
+xlabel('stim delay ms');
+ylabel('labeled left');
+ylim([0 1]);
+xlim([-8 (max(allPulseDelay)*1000)+8]);
+if params.corrlNoise
+    combLegend = 'corr rod+cone';
+else
+    combLegend = 'uncorr rod+cone';
+end
+legend('rod', 'cone', combLegend, 'optml', 'chance line', 'Location', 'Southeast');
+
+subplot(2,1,2);
+errorbar(xAxis - offsetPoints, rPMuRod, rPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+errorbar(xAxis, rPMuCone, rPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+errorbar(xAxis + offsetPoints, rPMuComb, rPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+errorbar(xAxis + 2*offsetPoints, mean(probTMeansR.coneShiftCone), std(probTMeansR.coneShiftCone),'ko','MarkerFaceColor','y');
+% errorbar(xAxis + 2*offsetPoints, rPMuOptml, rPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
+plot(xAxis, chanceLine, 'k-');
+title('performance compare, rightward');
+xlabel('stim delay ms');
+ylabel('labeled right');
+ylim([0 1]);
+xlim([-8 (max(allPulseDelay)*1000)+8]);
+
+%% better figure
+xAxis = allPulseDelay .* 1000;
+chanceLine = 0.5 .* ones(length(allPulseDelay), 1); 
+
+errorPlot = true;
+offsetPoints = 0.2;
+purpleColor = [0.660156250000000,0.457031250000000,0.816406250000000];
+
+PMuRod = mean([probTMeansL.rod;probTMeansR.rod]);
+PMuCone = mean([probTMeansL.cone;probTMeansR.cone]);
+PMuComb = mean([probTMeansL.comb;probTMeansR.comb]);
+
+figure;
+plot(xAxis - offsetPoints, PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+plot(xAxis, PMuCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+plot(xAxis + offsetPoints, PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+plot(xAxis + 2*offsetPoints, mean([probTMeansL.coneShiftCone;probTMeansR.coneShiftCone]),'ko','MarkerFaceColor','y');
+plot(xAxis, chanceLine, 'k-');
+
+xlabel('stim delay ms');
+ylabel('labeled accurately');
+ylim([0 1]);
+%xlim([-8 (max(allPulseDelay)*1000)+8]);
+if params.corrlNoise
+    combLegend = 'corr rod+cone';
+else
+    combLegend = 'uncorr rod+cone';
+end
+legend('rod', 'cone', combLegend, 'cone+shiftedCone', 'chance line', 'Location', 'Southeast');
+

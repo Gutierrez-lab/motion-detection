@@ -15,7 +15,7 @@ function [output, genSig] = runRodConeModel(filters, nlFuncs, stims, ...
 %   output     - a struct containing predicted current input traces
 %   genSig     - a struct containing generator signal values
 
-antiCausal = false; % ???
+antiCausal = false;
 
 if strcmp(runType, 'separateRod') % rod-only
     genSig = convolveFilterWithStim(filters.rod, stims.rod, antiCausal);
@@ -52,14 +52,13 @@ elseif strcmp(runType, 'sharedComb') % rod-cone
     
     output = passToNonlinearity(genSig, nlEvaluator, nlFuncs.combined);
 
-elseif strcmp(runType, 'coneShiftCone') % cone + shifted cone
+elseif strcmp(runType, 'coneShiftCone')
     gsCone = convolveFilterWithStim(filters.cone, stims.cone, antiCausal);
     gsShiftedCone = convolveFilterWithStim(filters.shiftedCone, stims.cone, antiCausal);
 
     genSig = gsCone + gsShiftedCone;
 
-    % output = passToNonlinearity(genSig, nlEvaluator, nlFuncs.cone); % not sure which to use?
-    output = passToNonlinearity(genSig, nlEvaluator, nlFuncs.combined);
+    output = passToNonlinearity(genSig, nlEvaluator, nlFuncs.cone);
     
 else
     error('run type string not recognized');

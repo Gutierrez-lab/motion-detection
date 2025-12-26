@@ -20,9 +20,7 @@ elseif strcmp(subunitType, 'coneShiftedCone') %
     leftStim.cone = stim.leftStim.red;
     rightStim.cone = stim.rightStim.red;
 
-else
-    leftStim.cone = stim.leftStim.red;
-    rightStim.cone = stim.rightStim.red;
+    e
     
 end
 
