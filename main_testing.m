@@ -165,32 +165,48 @@ ylim([0 1]);
 xlim([-8 (max(allPulseDelay)*1000)+8]);
 
 %% better figure
-xAxis = allPulseDelay .* 1000;
+xAxis = allPulseDelay .* 1000; % to get it into ms
 chanceLine = 0.5 .* ones(length(allPulseDelay), 1); 
 
-errorPlot = true;
 offsetPoints = 0.2;
 purpleColor = [0.660156250000000,0.457031250000000,0.816406250000000];
 
 PMuRod = mean([probTMeansL.rod;probTMeansR.rod]);
 PMuCone = mean([probTMeansL.cone;probTMeansR.cone]);
 PMuComb = mean([probTMeansL.comb;probTMeansR.comb]);
+% PStdRod = std([probTMeansL.rod;probTMeansR.rod]);
+% PStdCone = std([probTMeansL.cone;probTMeansR.cone]);
+% PStdComb = std([probTMeansL.comb;probTMeansR.comb]);
+% PSteRod = std([probTMeansL.rod;probTMeansR.rod])./sqrt(length([probTMeansL.rod;probTMeansR.rod]));
+% PSteCone = std([probTMeansL.cone;probTMeansR.cone])./sqrt(length([probTMeansL.rod;probTMeansR.rod]));
+% PSteComb = std([probTMeansL.comb;probTMeansR.comb])./sqrt(length([probTMeansL.rod;probTMeansR.rod]));
+
+n = 2*(params.repeats - params.sizeTrain); %total trials per pulse delay
+[~,pCIRod] = binofit(sum([probTMeansL.rod;probTMeansR.rod]),n.*ones(1,length(allPulseDelay)));
+[~,pCICone] = binofit(sum([probTMeansL.cone;probTMeansR.cone]),n.*ones(1,length(allPulseDelay)));
+[~,pCIComb] = binofit(sum([probTMeansL.comb;probTMeansR.comb]),n.*ones(1,length(allPulseDelay)));
 
 figure;
-plot(xAxis - offsetPoints, PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
-plot(xAxis, PMuCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
-plot(xAxis + offsetPoints, PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
-plot(xAxis + 2*offsetPoints, mean([probTMeansL.coneShiftCone;probTMeansR.coneShiftCone]),'ko','MarkerFaceColor','y');
+% plot(xAxis - offsetPoints, PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+% plot(xAxis, PMuCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+% plot(xAxis + offsetPoints, PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+% % plot(xAxis + 2*offsetPoints, mean([probTMeansL.coneShiftCone;probTMeansR.coneShiftCone]),'ko','MarkerFaceColor','y');
+% plot(xAxis, chanceLine, 'k-');
+
+errorbar(xAxis - offsetPoints, PMuRod, PMuRod - pCIRod(:,1)', pCIRod(:,2)' - PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+errorbar(xAxis, PMuCone, PMuCone-pCICone(:,1)', pCICone(:,2)'-PMuCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+errorbar(xAxis + offsetPoints, PMuComb, PMuComb-pCIComb(:,1)', pCIComb(:,2)'-PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+% plot(xAxis + 2*offsetPoints, mean([probTMeansL.coneShiftCone;probTMeansR.coneShiftCone]),'ko','MarkerFaceColor','y');
 plot(xAxis, chanceLine, 'k-');
 
 xlabel('stim delay ms');
 ylabel('labeled accurately');
-ylim([0 1]);
+% ylim([0 1]);
 %xlim([-8 (max(allPulseDelay)*1000)+8]);
-if params.corrlNoise
-    combLegend = 'corr rod+cone';
-else
-    combLegend = 'uncorr rod+cone';
-end
-legend('rod', 'cone', combLegend, 'cone+shiftedCone', 'chance line', 'Location', 'Southeast');
+% if params.corrlNoise
+%     combLegend = 'corr rod+cone';
+% else
+%     combLegend = 'uncorr rod+cone';
+% end
+% legend('rod', 'cone', combLegend, 'cone+shiftedCone', 'chance line', 'Location', 'Southeast');
 

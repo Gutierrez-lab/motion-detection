@@ -1,12 +1,12 @@
 %% Let's get started
 tic
-% plotSettings; %we can 
+% plotSettings; 
 
 % clearvars;
 % p = true;
 
 % Circuit params
-params.subDelay = 0.05;
+params.subDelay = 0.05; %50 ms
 params.productSubtraction = true;
 params.subunitInh = false;
 params.model = load('fullModelMAT'); %loads model data
@@ -14,28 +14,32 @@ params.model.excNLFuncH = params.model.excWithInfo.params.nlEvaluator;
 params.model.inhNLFuncH = params.model.inhWithInfo.params.nlEvaluator;
 
 % Stim params that I want to loop over
-allPulseDelay = 0:0.005:0.05; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15];
-params.pulseContrast = 1; 
+allPulseDelay = 0:0.01:0.1; %0:0.005:0.05; %[0 0.025:0.025:0.1 0.15 0.25]; %0:0.005:0.05; %[0:0.005:0.02 0.025:0.025:0.15]; % ms
 
-% Stimulus params
-params.pulseDur = 0.01; 
-
-params.fullInputDur = 2;%why wasn't this just shortened?
+params.fullInputDur = 2; % seconds
 params.noiseAmountNorm = 0.1; %0.1;
 params.corrlNoise = false;
 params.blueMean = 10;
 params.redMean = 200;
-params.sampleIntrv = 1E-4;
+params.sampleIntrv = 1E-4; % sampling rate
 
 % Trial params
 params.respTStart = 0.9;
 params.respTEnd = 1.9;
-params.repeats = 5500; %number of trials per condition
-params.sizeTrain = 100;
-sizeTest = params.repeats - params.sizeTrain;
-% params.totalSims = 3; %5 set this back when done testing 
+params.repeats = 5000; %number of trials per condition
+params.sizeTrain = 2000;
+% sizeTest = params.repeats - params.sizeTrain; % isn't used here
+% params.totalSims = 3; %5 set this back when done testing - I don't think
+% we use it anymore since we generate all the trials in an array
 
-projDiscAnalysis = false;
+% projDiscAnalysis = false; % isn't used here
+
+% save the parameters so we can use them consistently in other simulations
+save('modelParameters.mat','params','allPulseDelay')
+
+% variable stim params
+params.pulseContrast = 1; % 100%
+params.pulseDur = 0.01; % pulse width: 10 ms by default
 
 %% runs all experiment combos
 
@@ -96,59 +100,43 @@ params.pulseDelay = allPulseDelay;
 
 toc
 
-%% Time to plot
-xAxis = allPulseDelay .* 1000;
-% xAxisMatrix = repmat(xAxis, params.totalSims, 1);
+%% Kruskal-Wallis test
+% to compare combined model to cone-only
+
+p = zeros(size(allPulseDelay));
+
+for i = 1:length(allPulseDelay)
+    p(i) = kruskalwallis([[probTMeansL.comb(:,i);probTMeansR.comb(:,i)],[probTMeansL.cone(:,i);probTMeansR.cone(:,i)]],[],'off');
+end
+
+%% better figure
+xAxis = allPulseDelay .* 1000; % to get it into ms
 chanceLine = 0.5 .* ones(length(allPulseDelay), 1); 
 
-errorPlot = true;
 offsetPoints = 0.2;
 purpleColor = [0.660156250000000,0.457031250000000,0.816406250000000];
 
-lPMuRod = mean(probTMeansL.rod);
-rPMuRod = mean(probTMeansR.rod);
-lPMuCone = mean(probTMeansL.cone);
-rPMuCone = mean(probTMeansR.cone);
-lPMuComb = mean(probTMeansL.comb);
-rPMuComb = mean(probTMeansR.comb);
-% lPMuOptml = mean(probTMeansL.optml);
-% rPMuOptml = mean(probTMeansR.optml);
-lPStdRod = std(probTMeansL.rod);
-rPStdRod = std(probTMeansR.rod);
-lPStdCone = std(probTMeansL.cone);
-rPStdCone = std(probTMeansR.cone);
-lPStdComb = std(probTMeansL.comb);
-rPStdComb = std(probTMeansR.comb);
-% lPStdOptml = std(probTMeansL.optml);
-% rPStdOptml = std(probTMeansR.optml);
+PMuRod = mean([probTMeansL.rod;probTMeansR.rod]);
+PMuCone = mean([probTMeansL.cone;probTMeansR.cone]);
+PMuComb = mean([probTMeansL.comb;probTMeansR.comb]);
+
+% Clopper-Pearson confidence intervals
+n = 2*(params.repeats - params.sizeTrain); %total trials per pulse delay
+[~,pCIRod] = binofit(sum([probTMeansL.rod;probTMeansR.rod]),n.*ones(1,length(allPulseDelay)));
+[~,pCICone] = binofit(sum([probTMeansL.cone;probTMeansR.cone]),n.*ones(1,length(allPulseDelay)));
+[~,pCIComb] = binofit(sum([probTMeansL.comb;probTMeansR.comb]),n.*ones(1,length(allPulseDelay)));
 
 figure;
-subplot(2,1,1);
-errorbar(xAxis - offsetPoints, lPMuRod, lPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
-errorbar(xAxis, lPMuCone, lPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
-errorbar(xAxis + offsetPoints, lPMuComb, lPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
-% errorbar(xAxis + 2*offsetPoints, lPMuOptml, lPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
+errorbar(xAxis - offsetPoints, PMuRod, PMuRod - pCIRod(:,1)', pCIRod(:,2)' - PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+errorbar(xAxis, PMuCone, PMuCone-pCICone(:,1)', pCICone(:,2)'-PMuCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+errorbar(xAxis + offsetPoints, PMuComb, PMuComb-pCIComb(:,1)', pCIComb(:,2)'-PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+% plot(xAxis + 2*offsetPoints, mean([probTMeansL.coneShiftCone;probTMeansR.coneShiftCone]),'ko','MarkerFaceColor','y');
 plot(xAxis, chanceLine, 'k-');
-title('performance compare, leftward');
-xlabel('stim delay ms');
-ylabel('labeled left');
-ylim([0 1]);
-xlim([-8 (max(allPulseDelay)*1000)+8]);
-if params.corrlNoise
-    combLegend = 'corr rod+cone';
-else
-    combLegend = 'uncorr rod+cone';
-end
-legend('rod', 'cone', combLegend, 'optml', 'chance line', 'Location', 'Southeast');
 
-subplot(2,1,2);
-errorbar(xAxis - offsetPoints, rPMuRod, rPStdRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
-errorbar(xAxis, rPMuCone, rPStdCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
-errorbar(xAxis + offsetPoints, rPMuComb, rPStdComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
-% errorbar(xAxis + 2*offsetPoints, rPMuOptml, rPStdOptml, 'ko', 'MarkerFaceColor', 'w'); hold on;
-plot(xAxis, chanceLine, 'k-');
-title('performance compare, rightward');
-xlabel('stim delay ms');
-ylabel('labeled right');
-ylim([0 1]);
-xlim([-8 (max(allPulseDelay)*1000)+8]);
+xlabel('pulse delay, \Deltas (ms)');
+ylabel('accuracy');
+
+
+%% save the results!
+
+save('motionResults.mat','params','probTMeansL','probTMeansR','stimLeftward','stimRightward','p')
