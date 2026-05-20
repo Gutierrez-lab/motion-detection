@@ -43,6 +43,8 @@ params.pulseDur = 0.01; % pulse width: 10 ms by default
 
 %% runs all experiment combos
 
+p = zeros(size(allPulseDelay));
+
 for i = 1:length(allPulseDelay)
     
     params.pulseDelay = allPulseDelay(i);
@@ -91,6 +93,9 @@ for i = 1:length(allPulseDelay)
         params.subunitType = 'sharedComb';
         [probTMeansL.comb(:,i), probTMeansR.comb(:,i)] = ...
             reichardtTrialSet(params, stimLeftward, stimRightward);
+
+        % Kruskal-Wallis test
+        p(i) = kruskalwallis([[probTMeansL.comb(:,i);probTMeansR.comb(:,i)],[probTMeansL.cone(:,i);probTMeansR.cone(:,i)]],[],'off');
     % end
     
 end
@@ -99,15 +104,6 @@ params.pulseDelay = allPulseDelay;
 % params.pulseContrast = pulseContrast;
 
 toc
-
-%% Kruskal-Wallis test
-% to compare combined model to cone-only
-
-p = zeros(size(allPulseDelay));
-
-for i = 1:length(allPulseDelay)
-    p(i) = kruskalwallis([[probTMeansL.comb(:,i);probTMeansR.comb(:,i)],[probTMeansL.cone(:,i);probTMeansR.cone(:,i)]],[],'off');
-end
 
 %% better figure
 xAxis = allPulseDelay .* 1000; % to get it into ms

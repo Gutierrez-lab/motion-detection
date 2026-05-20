@@ -11,7 +11,7 @@ f = fit(xAxis',PMuComb0','poly3');
 %% plot the grid
 
 pulseContrasts = [0.5, 1, 1.5]; % 50%, 100%, 150%
-pulseDurationsrev = [0.02, 0.01, 0.005]; % 5, 10, 20 ms
+pulseDurationsrev = [0.02, 0.01, 0.005]; % 5, 10, 20 ms but reversed to making plotting the grid easy
 n = 2*(params.repeats - params.sizeTrain); %total trials per pulse delay
 
 chanceLine = 0.5 .* ones(length(allPulseDelay), 1);
