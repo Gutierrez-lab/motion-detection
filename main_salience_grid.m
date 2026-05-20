@@ -7,7 +7,7 @@ load('modelParameters.mat')
 % variable stim params
 pulseContrasts = [0.5, 1, 1.5]; % 50%, 100%, 150%
 pulseDurations = [0.005, 0.01, 0.02]; % 5, 10, 20 ms
-allPulseDelay = 0:0.01:0.05;
+allPulseDelay = 0:0.01:0.05; % shorter range than default
 
 % params.pulseContrast = 1; % 100%
 % params.pulseDur = 0.01; % pulse width: 10 ms by default
