@@ -26,8 +26,8 @@ params.sampleIntrv = 1E-4; % sampling rate
 % Trial params
 params.respTStart = 0.9;
 params.respTEnd = 1.9;
-params.repeats = 5000; %number of trials per condition
-params.sizeTrain = 2000;
+params.repeats = 5500; %number of trials per condition
+params.sizeTrain = 500;
 % sizeTest = params.repeats - params.sizeTrain; % isn't used here
 % params.totalSims = 3; %5 set this back when done testing - I don't think
 % we use it anymore since we generate all the trials in an array
