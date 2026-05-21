@@ -42,8 +42,8 @@ for j = 1:2
     title(file_str); legend('off')
     xlabel('')
     ylabel('')
-    xlim([-2 52])
-    ylim([0.45 1])
+    % xlim([-2 52])
+    ylim([0.4 1])
     box('off')
     xlabel('pulse delay, \Deltas (ms)');
     ylabel('accuracy');

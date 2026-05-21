@@ -135,4 +135,4 @@ ylabel('accuracy');
 
 %% save the results!
 
-save('motionResults.mat','params','allPulseDelay','probTMeansL','probTMeansR','stimLeftward','stimRightward','p')
+save('motionResults.mat','params','allPulseDelay','probTMeansL','probTMeansR','p')
