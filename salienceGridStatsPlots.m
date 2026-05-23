@@ -30,15 +30,15 @@ for k = 1:3
         PMuCone = mean([probTMeansL.cone;probTMeansR.cone]);
         PMuComb = mean([probTMeansL.comb;probTMeansR.comb]);
 
-        [~,pCIRod] = binofit(sum([probTMeansL.rod;probTMeansR.rod]),n.*ones(1,length(allPulseDelay)));
-        [~,pCICone] = binofit(sum([probTMeansL.cone;probTMeansR.cone]),n.*ones(1,length(allPulseDelay)));
-        [~,pCIComb] = binofit(sum([probTMeansL.comb;probTMeansR.comb]),n.*ones(1,length(allPulseDelay)));
+        [~,pCIRod] = binofit(sum([probTMeansL.rod;probTMeansR.rod]),n);
+        [~,pCICone] = binofit(sum([probTMeansL.cone;probTMeansR.cone]),n);
+        [~,pCIComb] = binofit(sum([probTMeansL.comb;probTMeansR.comb]),n);
 
 
         subplot(3,3,idx)
         plot(f,'c'); hold on
         plot(xAxis, chanceLine, 'k-');
-        errorbar(xAxis - offsetPoints, PMuRod, PMuRod - pCIRod(:,1)', pCIRod(:,2)' - PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+        errorbar(xAxis - offsetPoints, PMuRod, PMuRod-pCIRod(:,1)', pCIRod(:,2)'-PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
         errorbar(xAxis, PMuCone, PMuCone-pCICone(:,1)', pCICone(:,2)'-PMuCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
         errorbar(xAxis + offsetPoints, PMuComb, PMuComb-pCIComb(:,1)', pCIComb(:,2)'-PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
 

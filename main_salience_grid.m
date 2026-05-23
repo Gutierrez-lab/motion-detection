@@ -14,13 +14,6 @@ allPulseDelay = 0:0.01:0.05; % shorter range than default
 
 %% runs all experiment combos
 
-% probTMeansL.rod = zeros(params.repeats,length(allPulseDelay));
-% probTMeansR.rod = zeros(params.repeats,length(allPulseDelay));
-% probTMeansL.cone = zeros(params.repeats,length(allPulseDelay));
-% probTMeansR.cone = zeros(params.repeats,length(allPulseDelay));
-% probTMeansL.comb = zeros(params.repeats,length(allPulseDelay));
-% probTMeansR.comb = zeros(params.repeats,length(allPulseDelay));
-
 for k = 1:length(pulseDurations)
     params.pulseDur = pulseDurations(k);
 
@@ -46,7 +39,6 @@ for k = 1:length(pulseDurations)
 
             % Run stimuli on different circuits
             % rod only
-            % This is where the noise should be added in.
             params.subunitType = 'separateRod';
             [probTMeansL.rod(:,i), probTMeansR.rod(:,i), ...
                 pRodLL, pRodLR, pRodRR, pRodRL] = ...
@@ -63,7 +55,7 @@ for k = 1:length(pulseDurations)
             [probTMeansL.comb(:,i), probTMeansR.comb(:,i)] = ...
                 reichardtTrialSet(params, stimLeftward, stimRightward);
 
-            % Kruskal-Wallis test
+            % Kruskal-Wallis test/Mann-Whitney U test
             % to compare combined model to cone-only
             p(i) = kruskalwallis([[probTMeansL.comb(:,i);probTMeansR.comb(:,i)],[probTMeansL.cone(:,i);probTMeansR.cone(:,i)]],[],'off');
         end
