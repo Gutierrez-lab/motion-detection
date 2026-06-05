@@ -94,9 +94,9 @@ PMuComb = mean([probTMeansL.comb;probTMeansR.comb]);
 
 % Clopper-Pearson confidence intervals
 n = 2*(params.repeats - params.sizeTrain); %total trials per pulse delay
-[~,pCIRod] = binofit(sum([probTMeansL.rod;probTMeansR.rod]),n.*ones(1,length(allPulseDelay)));
-[~,pCICone] = binofit(sum([probTMeansL.cone;probTMeansR.cone]),n.*ones(1,length(allPulseDelay)));
-[~,pCIComb] = binofit(sum([probTMeansL.comb;probTMeansR.comb]),n.*ones(1,length(allPulseDelay)));
+[~,pCIRod] = binofit(sum([probTMeansL.rod;probTMeansR.rod]),n);
+[~,pCICone] = binofit(sum([probTMeansL.cone;probTMeansR.cone]),n);
+[~,pCIComb] = binofit(sum([probTMeansL.comb;probTMeansR.comb]),n);
 
 figure;
 errorbar(xAxis - offsetPoints, PMuRod, PMuRod - pCIRod(:,1)', pCIRod(:,2)' - PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
@@ -107,6 +107,9 @@ plot(xAxis, chanceLine, 'k-');
 
 xlabel('pulse delay, \Deltas (ms)');
 ylabel('accuracy');
+fontsize(18,'points')
+xlim([-5 105])
+box off
 
 
 %% save the results!
