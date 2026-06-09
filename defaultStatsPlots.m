@@ -105,14 +105,19 @@ disp(message);
 message = sprintf('p-value: %6.4f',pDev);
 disp(message);
 
-%Create simple plot
+% Data points
 ProportionCorrectObservedComb = SuccessesComb./Ntrials; 
 ProportionCorrectObservedCone = SuccessesCone./Ntrials; 
 ProportionCorrectObservedRod = SuccessesRod./Ntrials; 
+
+% Model curve fits
 StimLevelsFineGrain=[min(xAxis):max(xAxis)./1000:max(xAxis)];
 ProportionCorrectModelComb = PF(paramsValuesComb,StimLevelsFineGrain);
 ProportionCorrectModelCone = PF(paramsValuesCone,StimLevelsFineGrain);
 ProportionCorrectModelRod = PF(paramsValuesRod,StimLevelsFineGrain);
+
+% save the combined circuit curve for later plotting
+save('modelFitComb.mat','ProportionCorrectModelComb','ProportionCorrectObservedComb','StimLevelsFineGrain')
 
 %% Psychometric fit figure
 figure('name','Maximum Likelihood Psychometric Function Fitting');
@@ -140,39 +145,113 @@ set(gca, 'fontsize',16);
 set(gca, 'Xtick',xAxis);
 % axis([min(xAxis) max(xAxis) .4 1]);
 
-%% Figure with data and psychometric fits
-figure;
-purpleColor = [0.66, 0.46, 0.82];
-offsetPoints = 0.2;
-axes
-hold on
-plot(StimLevelsFineGrain,ProportionCorrectModelCone,'-','color','r','linewidth',4);
-plot(StimLevelsFineGrain,ProportionCorrectModelComb,'-','color',purpleColor,'linewidth',4);
-plot(StimLevelsFineGrain,ProportionCorrectModelRod,'-','color','b','linewidth',4);
+%% Analyses with limited samples
+Nsamples = 500; % 500 samples on each side = 1,000 total per condition
 
-PMuRod = mean([probTMeansL.rod(1:500,:);probTMeansR.rod(1:500,:)]);
-PMuCone = mean([probTMeansL.cone(1:500,:);probTMeansR.cone(1:500,:)]);
-PMuComb = mean([probTMeansL.comb(1:500,:);probTMeansR.comb(1:500,:)]);
+rodSamples = [probTMeansL.rod(1:Nsamples,:);probTMeansR.rod(1:Nsamples,:)];
+coneSamples = [probTMeansL.cone(1:Nsamples,:);probTMeansR.cone(1:Nsamples,:)];
+combSamples = [probTMeansL.comb(1:Nsamples,:);probTMeansR.comb(1:Nsamples,:)];
+
+% Accuracy
+PMuRod = mean(rodSamples);
+PMuCone = mean(coneSamples);
+PMuComb = mean(combSamples);
 
 % Clopper-Pearson confidence intervals
-n = 1000; %total trials per pulse delay
-[~,pCIRod] = binofit(sum([probTMeansL.rod(1:500,:);probTMeansR.rod(1:500,:)]),n);
-[~,pCICone] = binofit(sum([probTMeansL.cone(1:500,:);probTMeansR.cone(1:500,:)]),n);
-[~,pCIComb] = binofit(sum([probTMeansL.comb(1:500,:);probTMeansR.comb(1:500,:)]),n);
+n = 2*Nsamples; %total trials per pulse delay
+[~,pCIRod] = binofit(sum(rodSamples),n);
+[~,pCICone] = binofit(sum(coneSamples),n);
+[~,pCIComb] = binofit(sum(combSamples),n);
 
+% Kruskal-Wallis test/Mann-Whitney U test
+p_values = zeros(size(allPulseDelay));
+for i = 1:length(allPulseDelay)
+    p_values(i) = kruskalwallis([combSamples(:,i),coneSamples(:,i)],[],'off');
+end
+
+% logical array for significant p_values
+p_significant = p_values<0.05;
+
+%% Figure with data and psychometric fit of combo circuit
+figure;
+purpleColor = [0.66, 0.46, 0.82];
+offsetPoints = 0.5;
+axes
+hold on
+plot(StimLevelsFineGrain,ProportionCorrectModelComb,'-','color',purpleColor,'linewidth',2);
 
 errorbar(xAxis - offsetPoints, PMuRod, PMuRod - pCIRod(:,1)', pCIRod(:,2)' - PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
 errorbar(xAxis, PMuCone, PMuCone-pCICone(:,1)', pCICone(:,2)'-PMuCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
 errorbar(xAxis + offsetPoints, PMuComb, PMuComb-pCIComb(:,1)', pCIComb(:,2)'-PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
 
 % Plot Chance Line
-plot([0 max(xAxis)], [0.5 0.5], 'k--', 'LineWidth', 1);
+plot([xAxis(1)-2, xAxis(end)+2], [0.5 0.5], 'k--', 'LineWidth', 1);
 
-% legend('Cone','Rod+Cone','Rod','Location','East')
-xlabel('Pulse Delay, \Deltas (ms)');
-ylabel('Accuracy'); %'Proportion Correct'
-set(gca,'FontSize',16)
+% plot significant points
+% plot(xAxis(p_significant),PMuCone(p_significant)+0.03,'*','MarkerSize',8,'Color','k');
+plot(xAxis(p_significant),max([pCICone(p_significant,2),pCIComb(p_significant,2),pCIRod(p_significant,2)]')+0.02,'*','MarkerSize',6,'Color','k');
+
+% make inset box
+% 1. Define the coordinates for the box
+x_start = 8;
+x_end   = 42;
+y_start = 0.65;
+y_end   = 1.01;
+
+% 2. Calculate the width and height (required by the rectangle function)
+box_width  = x_end - x_start;
+box_height = y_end - y_start;
+
+% 3. Draw the annotation box
+% 'Position' format is [Left, Bottom, Width, Height]
+hBox = rectangle('Position', [x_start, y_start, box_width, box_height], ...
+                 'EdgeColor', [0.5, 0.5, 0.5], ...          % grey border (change color as desired)
+                 'LineWidth', 1.5, ...          % Line thickness
+                 'LineStyle', '-');
+
+legend('','rod','cone','rod+cone','chance','Location','East')
+xlabel('pulse delay, \Deltas (ms)');
+ylabel('accuracy'); %'Proportion Correct'
 xlim([xAxis(1)-2, xAxis(end)+2])
+ylim([0.4 1.025])
 
-set(gca, 'fontsize',16);
+set(gca, 'fontsize',18);
 set(gca, 'Xtick',xAxis);
+set(gcf,'Position',[0 0 620 400]);
+
+%% plot the inset
+figure; hold on
+
+errorbar(xAxis - offsetPoints, PMuRod, PMuRod - pCIRod(:,1)', pCIRod(:,2)' - PMuRod, 'ko', 'MarkerFaceColor', 'b'); hold on;
+errorbar(xAxis, PMuCone, PMuCone-pCICone(:,1)', pCICone(:,2)'-PMuCone, 'ko', 'MarkerFaceColor', 'r'); hold on;
+errorbar(xAxis + offsetPoints, PMuComb, PMuComb-pCIComb(:,1)', pCIComb(:,2)'-PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+plot(xAxis(p_significant),max([pCICone(p_significant,2),pCIComb(p_significant,2),pCIRod(p_significant,2)]')+0.02,'*','MarkerSize',8,'Color','k');
+
+xlim([x_start x_end])
+ylim([y_start y_end])
+
+set(gca, 'fontsize',18);
+set(gca, 'Xtick',xAxis);
+set(gca,'YTick',[0:0.1:1]);
+set(gcf,'Position',[1000 800 400 350]);
+
+%% Figure with just rod+cone data
+figure;
+purpleColor = [0.66, 0.46, 0.82];
+axes
+hold on
+
+errorbar(xAxis, PMuComb, PMuComb-pCIComb(:,1)', pCIComb(:,2)'-PMuComb, 'ko', 'MarkerFaceColor', purpleColor); hold on;
+
+% Plot Chance Line
+plot([xAxis(1)-2, xAxis(end)+2], [0.5 0.5], 'k--', 'LineWidth', 1);
+
+legend('rod+cone','chance','Location','East')
+xlabel('pulse delay, \Deltas (ms)');
+ylabel('accuracy'); %'Proportion Correct'
+xlim([xAxis(1)-2, xAxis(end)+2])
+ylim([0.4 1])
+
+set(gca, 'fontsize',18);
+% set(gca, 'Xtick',xAxis);
+set(gcf,'Position',[1000 800 400 465]);

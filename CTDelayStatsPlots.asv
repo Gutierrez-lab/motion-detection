@@ -214,32 +214,27 @@ for j = 1:2
     ProportionCorrectObservedCone = SuccessesCone./Ntrials;
     ProportionCorrectObservedRod = SuccessesRod./Ntrials;
 
-        % Clopper-Pearson confidence intervals
-    [~,pCIRod] = binofit(SuccessesRod,N);
-    [~,pCICone] = binofit(SuccessesCone,N);
-    [~,pCIComb] = binofit(SuccessesComb,N);
-
-    xCI = [xAxis, fliplr(xAxis)];
-    yCIRod = [pCIRod(:,1)',fliplr(pCIRod(:,2)')];
-    yCICone = [pCICone(:,1)',fliplr(pCICone(:,2)')];
-    yCIComb = [pCIComb(:,1)',fliplr(pCIComb(:,2)')];
-
     subplot(1,3,idx)
     hold on
-    % plot filled CI first
-    fill(xCI,yCICone,'r','FaceAlpha',0.3,'EdgeColor','none')
-    fill(xCI,yCIComb,purpleColor,'FaceAlpha',0.3,'EdgeColor','none')
-    fill(xCI,yCIRod,'b','FaceAlpha',0.3,'EdgeColor','none')
+    % plot(StimLevelsFineGrain,ProportionCorrectModelCone,'-','color','r','linewidth',4);
+    % plot(StimLevelsFineGrain,ProportionCorrectModelComb,'-','color',purpleColor,'linewidth',4);
+    % plot(StimLevelsFineGrain,ProportionCorrectModelRod,'-','color','b','linewidth',4);
+
     plot(xAxis,ProportionCorrectObservedCone,'ko', 'MarkerFaceColor', 'r');
     plot(xAxis,ProportionCorrectObservedComb,'ko', 'MarkerFaceColor', purpleColor);
     plot(xAxis,ProportionCorrectObservedRod,'ko', 'MarkerFaceColor', 'b');
+
+    % plot filled CI
+    x = [0 4 5 2 1];
+y = [0 0 2 4 3];
+fill(x,y,'r')
 
     % Plot Chance Line
     plot(xAxis, chanceLine, 'k--');
 
     title(['\Deltat = ' num2str(corrTimeDelays(j)*1000) ' ms']); legend('off')
     xlim([-2 102])
-    ylim([0.45 1])
+    ylim([0.4 1])
     box('off')
     xlabel('pulse delay, \Deltas (ms)');
     ylabel('accuracy');
@@ -251,7 +246,7 @@ for j = 1:2
     idx = idx+1;
 end
 
-legend('','','','cone','rod+cone','rod','chance','Location','East')
+legend('cone','rod+cone','rod','Location','East')
 set(gcf,'Position',[400 700 1200 550])
 
 % Now do some model fits for rod+cone conditions only
@@ -303,29 +298,14 @@ for j = 1:length(corrTimeDelays)
     ProportionCorrectModelComb = PF(paramsValuesComb,StimLevelsFineGrain);
     
     % plot it
-    plot(StimLevelsFineGrain,ProportionCorrectModelComb,'-','color',purpleColor,'linewidth',j);
-    % plot(xAxis,ProportionCorrectObservedComb,'ko', 'MarkerFaceColor', [0.9,0.9,0.9]./j);
+    plot(StimLevelsFineGrain,ProportionCorrectModelComb,'-','color',purpleColor,'linewidth',idx);
+    plot(xAxis,ProportionCorrectObservedComb,'ko', 'MarkerFaceColor', purpleColor);
 
     % concatenate successes
     NumPos = [NumPos; SuccessesComb];
 end
 
-% Plot Chance Line
-plot(xAxis, chanceLine, 'k--');
-
-title(['rod+cone psychometric fits'])
-xlim([-2 102])
-ylim([0.45 1])
-box('off')
-xlabel('pulse delay, \Deltas (ms)');
-ylabel('accuracy');
-
-set(gca, 'fontsize',18);
-set(gca, 'Xtick',[0:20:100]);
-legend('\Deltat = 25ms','\Deltat = 50ms','\Deltat = 75ms','chance','Location','East')
-set(gcf,'Position',[400 700 1700 475])
- 
-%% Model comparison between rod+cone curves across time delays
+% Model comparison between rod+cone curves across time delays
 OutOfNum = N .* ones(size(NumPos));
 % Number of simulations to perform to determine model comparison p-values
 Bmc = 10000;
